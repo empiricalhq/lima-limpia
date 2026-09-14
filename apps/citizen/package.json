@@ -31,7 +31,7 @@
     "expo-splash-screen": "~57.0.8",
     "expo-system-ui": "~57.0.3",
     "lucide-react-native": "^0.553.0",
-    "react": "19.2.3",
+    "react": "19.3.0",
     "react-hook-form": "^7.86.0",
     "react-native": "0.86.3",
     "react-native-fast-squircle": "^1.1.5",
@@ -45,7 +45,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.29.7",
-    "@types/react": "~19.2.18",
+    "@types/react": "~19.3.0",
     "eslint": "^9.39.5",
     "eslint-config-expo": "~57.0.2",
     "typescript": "~6.0.3"
