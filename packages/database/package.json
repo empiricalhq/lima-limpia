@@ -21,7 +21,7 @@
     "lint": "biome lint ."
   },
   "dependencies": {
-    "@clack/prompts": "1.7.0",
+    "@clack/prompts": "1.8.0",
     "better-auth": "~1.7.2",
     "drizzle-orm": "^0.45.2",
     "pg": "^8.16.3",
