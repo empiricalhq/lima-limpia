@@ -1,8 +1,16 @@
 version: 2
+
+# apps/* and packages/* are bun workspaces sharing one lockfile, so the npm
+# entry for '/' already scans and updates every workspace manifest. A second
+# entry for a workspace directory does not add coverage, it duplicates it: each
+# apps/citizen bump used to arrive as two pull requests. Only apps/citizen gets
+# its own entry, because only it has a different owner for its versions.
+# Per-directory review assignment lives in .github/CODEOWNERS.
 updates:
-  # root
   - package-ecosystem: 'npm'
     directory: '/'
+    exclude-paths:
+      - 'apps/citizen/**'
     schedule:
       interval: 'weekly'
       day: 'monday'
@@ -12,19 +20,6 @@ updates:
       - 'totallynotdavid'
     commit-message:
       prefix: 'deps'
-      include: 'scope'
-
-  - package-ecosystem: 'npm'
-    directory: '/apps/web'
-    schedule:
-      interval: 'weekly'
-      day: 'monday'
-      time: '09:00'
-    open-pull-requests-limit: 10
-    assignees:
-      - 'PedroRojasF'
-    commit-message:
-      prefix: 'deps(web)'
       include: 'scope'
     groups:
       nextjs:
@@ -41,6 +36,9 @@ updates:
       drizzle:
         patterns:
           - 'drizzle*'
+      supabase:
+        patterns:
+          - '@supabase/*'
 
   - package-ecosystem: 'npm'
     directory: '/apps/citizen'
@@ -67,26 +65,25 @@ updates:
         patterns:
           - 'react*'
           - '@types/react*'
-
-  - package-ecosystem: 'npm'
-    directory: '/packages/database'
-    schedule:
-      interval: 'weekly'
-      day: 'monday'
-      time: '09:00'
-    open-pull-requests-limit: 10
-    assignees:
-      - 'totallynotdavid'
-    commit-message:
-      prefix: 'deps(database)'
-      include: 'scope'
-    groups:
-      drizzle:
-        patterns:
-          - 'drizzle*'
-      supabase:
-        patterns:
-          - '@supabase/*'
+    # Expo's SDK matrix pins these, and `expo install --fix` is what writes
+    # them from the installed SDK's bundledNativeModules.json. A bump here
+    # moves the app off the set Expo tested, so the only version signal worth
+    # acting on is the `expo` package itself, which stays out of this list.
+    ignore:
+      - dependency-name: 'expo-*'
+      - dependency-name: '@react-native-community/netinfo'
+      - dependency-name: 'react'
+      - dependency-name: 'react-native'
+      - dependency-name: 'react-native-gesture-handler'
+      - dependency-name: 'react-native-reanimated'
+      - dependency-name: 'react-native-safe-area-context'
+      - dependency-name: 'react-native-screens'
+      - dependency-name: 'react-native-svg'
+      - dependency-name: 'react-native-worklets'
+      # Babel 8 waits on @expo/metro-config, which still depends on @babel/core ^7.20.0.
+      - dependency-name: '@babel/core'
+        versions:
+          - '8.x'
 
   - package-ecosystem: 'github-actions'
     directory: '/'
