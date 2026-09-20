@@ -142,7 +142,7 @@ export function ReportForm({ onSubmit, isSubmitting }: ReportFormProps) {
 
       <Button
         title="Enviar reporte"
-        onPress={handleSubmit(handleFormSubmit)}
+        onPress={() => handleSubmit(handleFormSubmit)()}
         loading={isSubmitting}
         disabled={!isValid || isSubmitting}
         fullWidth={true}

@@ -139,7 +139,7 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
 
       <Button
         title={mode === "login" ? "Iniciar sesión" : "Crear cuenta"}
-        onPress={handleSubmit(handleAuth)}
+        onPress={() => handleSubmit(handleAuth)()}
         loading={isSubmitting}
         fullWidth={true}
       />

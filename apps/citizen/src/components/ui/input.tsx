@@ -19,7 +19,7 @@ export const Input = ({
   style,
   ref,
   ...props
-}: InputProps & { ref?: React.RefObject<TextInput | null> }) => (
+}: InputProps & { ref?: React.Ref<React.ComponentRef<typeof TextInput>> }) => (
   <View>
     <Text style={styles.label}>{label}</Text>
     <TextInput

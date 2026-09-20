@@ -1,5 +1,5 @@
 import { Link, Tabs } from "expo-router";
-import type { BottomTabBarProps } from "expo-router/build/react-navigation/bottom-tabs";
+import type { BottomTabBarProps } from "expo-router/tabs";
 import {
   BookOpen,
   Home,
@@ -21,7 +21,7 @@ const TAB_ICONS: Record<string, ComponentType<LucideProps>> = {
   profile: User,
 };
 
-function CustomTabBar({ state, navigation }: BottomTabBarProps) {
+function CustomTabBar({ state, emitter, navigateToTab }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
 
   return (
@@ -39,14 +39,14 @@ function CustomTabBar({ state, navigation }: BottomTabBarProps) {
           const isFocused = state.index === index;
 
           const onPress = () => {
-            const event = navigation.emit({
+            const event = emitter.emit({
               type: "tabPress",
               target: route.key,
               canPreventDefault: true,
             });
 
             if (!(isFocused || event.defaultPrevented)) {
-              navigation.navigate(route.name);
+              navigateToTab(route.key);
             }
           };
 

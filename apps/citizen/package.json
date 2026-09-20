@@ -17,29 +17,29 @@
     "@hookform/resolvers": "^5.9.1",
     "@react-native-community/netinfo": "12.0.1",
     "@tanstack/react-query": "^5.103.1",
-    "expo": "^57.0.24",
-    "expo-camera": "~57.0.5",
-    "expo-constants": "~57.0.19",
-    "expo-dev-client": "~57.0.19",
-    "expo-font": "~57.0.4",
-    "expo-linking": "~57.0.10",
-    "expo-location": "~57.0.19",
-    "expo-maps": "~57.0.3",
-    "expo-router": "~57.0.22",
-    "expo-secure-store": "~57.0.4",
-    "expo-splash-screen": "~57.0.9",
-    "expo-system-ui": "~57.0.4",
+    "expo": "^58.0.0-preview.3",
+    "expo-camera": "~58.0.1",
+    "expo-constants": "~58.0.3",
+    "expo-dev-client": "~58.0.3",
+    "expo-font": "~58.0.1",
+    "expo-linking": "~58.0.3",
+    "expo-location": "~58.0.3",
+    "expo-maps": "~58.0.1",
+    "expo-router": "~58.0.4",
+    "expo-secure-store": "~58.0.0",
+    "expo-splash-screen": "~58.0.0",
+    "expo-system-ui": "~58.0.1",
     "lucide-react-native": "^1.47.0",
     "react": "19.2.3",
     "react-hook-form": "^7.88.0",
-    "react-native": "0.86.3",
+    "react-native": "0.88.0-rc.0",
     "react-native-fast-squircle": "^1.1.5",
-    "react-native-gesture-handler": "~2.32.0",
-    "react-native-reanimated": "4.5.1",
-    "react-native-safe-area-context": "~5.7.0",
-    "react-native-screens": "~4.26.2",
-    "react-native-svg": "15.15.4",
-    "react-native-worklets": "0.10.1",
+    "react-native-gesture-handler": "~3.2.1",
+    "react-native-reanimated": "4.6.0",
+    "react-native-safe-area-context": "~5.9.1",
+    "react-native-screens": "~4.27.0",
+    "react-native-svg": "15.15.5",
+    "react-native-worklets": "0.12.2",
     "zod": "^4.6.5"
   },
   "devDependencies": {
@@ -51,5 +51,13 @@
   "private": true,
   "trustedDependencies": [
     "unrs-resolver"
-  ]
+  ],
+  "expo": {
+    "install": {
+      "exclude": [
+        "typescript",
+        "@types/react"
+      ]
+    }
+  }
 }
