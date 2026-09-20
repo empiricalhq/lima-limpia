@@ -17,7 +17,7 @@ dependencies = [
     "beautifulsoup4>=4.14.2",
     "fiona>=1.10.1",
     "geopandas>=1.1.1",
-    "marimo==0.17.5",
+    "marimo>=0.23.0",
     "matplotlib>=3.10.7",
     "numpy>=2.3.4",
     "pandas>=2.3.3",

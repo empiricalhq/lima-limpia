@@ -20,7 +20,9 @@ try:
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
         page = browser.new_page()
-        page.goto(f"file:///{input_path}", wait_until="domcontentloaded", timeout=60_000)
+        page.goto(
+            f"file:///{input_path}", wait_until="domcontentloaded", timeout=60_000
+        )
         page.wait_for_selector("#root > *", state="attached", timeout=60_000)
 
         os.makedirs(os.path.dirname(output_path), exist_ok=True)

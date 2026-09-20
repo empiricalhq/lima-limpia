@@ -1,8 +1,9 @@
 altair==5.5.0
-anyio==4.11.0
+anyio==4.11.0 ; sys_platform != 'emscripten'
 attrs==25.4.0
 beautifulsoup4==4.14.2
 certifi==2025.10.5
+cffi==2.1.1 ; python_full_version < '3.15' and implementation_name == 'pypy' and sys_platform != 'emscripten'
 charset-normalizer==3.4.4
 click==8.3.0
 click-plugins==1.1.1.2
@@ -15,7 +16,7 @@ fiona==1.10.1
 fonttools==4.60.1
 geopandas==1.1.1
 greenlet==3.2.4
-h11==0.16.0
+h11==0.16.0 ; sys_platform != 'emscripten'
 idna==3.11
 itsdangerous==2.2.0
 jedi==0.19.2
@@ -23,12 +24,12 @@ jinja2==3.1.6
 jsonschema==4.25.1
 jsonschema-specifications==2025.9.1
 kiwisolver==1.4.9
-loro==1.8.2 ; python_full_version < '3.14'
-marimo==0.17.5
+loro==1.13.2 ; sys_platform != 'android' and sys_platform != 'emscripten'
+marimo==0.24.0
 markdown==3.9
 markupsafe==3.0.3
 matplotlib==3.10.7
-msgspec-m==0.19.2
+msgspec==0.21.1
 narwhals==2.10.0
 numpy==2.3.4
 packaging==25.0
@@ -39,28 +40,31 @@ playwright==1.55.0
 plotly==6.3.1
 polars==1.35.1
 polars-runtime-32==1.35.1
-psutil==7.1.2
+psutil==7.1.2 ; sys_platform != 'android' and sys_platform != 'emscripten'
 pyarrow==22.0.0
+pycparser==3.0 ; python_full_version < '3.15' and implementation_name == 'pypy' and sys_platform != 'emscripten'
 pyee==13.0.0
 pygments==2.19.2
-pymdown-extensions==10.16.1
+pymdown-extensions==11.0.2
 pyogrio==0.11.1
 pyparsing==3.2.5
 pyproj==3.7.2
 python-dateutil==2.9.0.post0
+python-multipart==0.0.32
 pytz==2025.2
 pyyaml==6.0.3
+pyzmq==27.2.0 ; python_full_version < '3.15' and sys_platform != 'emscripten'
 referencing==0.37.0
 requests==2.32.5
 rpds-py==0.28.0
 shapely==2.1.2
 six==1.17.0
-sniffio==1.3.1
+sniffio==1.3.1 ; sys_platform != 'emscripten'
 soupsieve==2.8
-starlette==0.49.1
+starlette==0.49.1 ; sys_platform != 'emscripten'
 tomlkit==0.13.3
 typing-extensions==4.15.0
 tzdata==2025.2
 urllib3==2.5.0
-uvicorn==0.38.0
-websockets==15.0.1
+uvicorn==0.38.0 ; sys_platform != 'emscripten'
+websockets==15.0.1 ; sys_platform != 'emscripten'
