@@ -1,31 +1,26 @@
-import process from 'node:process';
 import { cancel, group, intro, log, note, outro, password, spinner, text } from '@clack/prompts';
 import { betterAuth } from 'better-auth';
 import { organization } from 'better-auth/plugins';
 import { Pool } from 'pg';
 import color from 'picocolors';
+import { mustEnv, optionalEnv } from './env.js';
 
 const MIN_NAME_LENGTH = 5;
 const MIN_PASSWORD_LENGTH = 8;
 const EMAIL_REGEX = /^\S+@\S+\.\S+$/;
 
-if (!process.env.DATABASE_URL) {
-  throw new Error('DATABASE_URL is required. Make sure it is set in your .env file.');
-}
-
-if (!process.env.BETTER_AUTH_SECRET) {
-  throw new Error('BETTER_AUTH_SECRET is required in your .env file.');
-}
+const DATABASE_URL = mustEnv('DATABASE_URL');
+const AUTH_SECRET = mustEnv('BETTER_AUTH_SECRET');
 
 const db = new Pool({
-  connectionString: process.env.DATABASE_URL,
+  connectionString: DATABASE_URL,
 });
 
 const auth = betterAuth({
   database: db,
-  secret: process.env.BETTER_AUTH_SECRET,
+  secret: AUTH_SECRET,
   // biome-ignore lint/style/useNamingConvention: Better Auth requires baseURL.
-  baseURL: process.env.BETTER_AUTH_URL || 'http://localhost:4000/api',
+  baseURL: optionalEnv('BETTER_AUTH_URL', 'http://localhost:4000/api'),
   emailAndPassword: { enabled: true },
   telemetry: { enabled: false },
   plugins: [organization({})],

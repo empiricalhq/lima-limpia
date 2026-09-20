@@ -1,13 +1,5 @@
-import process from 'node:process';
 import { defineConfig } from 'drizzle-kit';
-
-function mustEnv(name: string): string {
-  const value = process.env[name];
-  if (!value) {
-    throw new Error(`La variable de entorno ${name} es obligatoria`);
-  }
-  return value;
-}
+import { mustEnv } from './scripts/env.js';
 
 const databaseUrl = mustEnv('DATABASE_URL');
 

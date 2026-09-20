@@ -1,10 +1,10 @@
-import process from 'node:process';
 import { intro, log, outro, spinner } from '@clack/prompts';
 import { createId } from '@paralleldrive/cuid2';
 import { betterAuth } from 'better-auth';
 import { admin } from 'better-auth/plugins';
 import { Pool, type PoolClient } from 'pg';
 import color from 'picocolors';
+import { mustEnv, optionalEnv } from './env.js';
 
 const MILLISECONDS_PER_MINUTE = 60_000;
 const DEFAULT_START_HOUR = 8;
@@ -19,14 +19,6 @@ interface AssignmentSeed {
   durationMinutes: number;
 }
 
-function mustEnv(name: string): string {
-  const val = process.env[name];
-  if (!val) {
-    throw new Error(`${name} is required in .env`);
-  }
-  return val;
-}
-
 const DATABASE_URL = mustEnv('DATABASE_URL');
 const AUTH_SECRET = mustEnv('BETTER_AUTH_SECRET');
 const ADMIN_EMAIL = mustEnv('SYSTEM_ADMIN_EMAIL');
@@ -37,7 +29,7 @@ const auth = betterAuth({
   database: db,
   secret: AUTH_SECRET,
   // biome-ignore lint/style/useNamingConvention: Better Auth requires baseURL.
-  baseURL: process.env.BETTER_AUTH_URL || 'http://localhost:4000/api',
+  baseURL: optionalEnv('BETTER_AUTH_URL', 'http://localhost:4000/api'),
   emailAndPassword: { enabled: true },
   user: {
     additionalFields: {
@@ -174,7 +166,7 @@ async function ensureAssignment({
   startHour,
   durationMinutes,
 }: AssignmentSeed) {
-  const today = new Date().toISOString().split('T')[0];
+  const [today] = new Date().toISOString().split('T');
   const { rows } = await dbClient.query('SELECT id FROM route_assignment WHERE truck_id=$1 AND assigned_date=$2', [
     truckId,
     today,
@@ -262,13 +254,13 @@ async function main() {
     await client.query('COMMIT');
 
     outro(color.green('Datos de ejemplo añadidos correctamente.'));
-  } catch (err: unknown) {
+  } catch (error: unknown) {
     await client.query('ROLLBACK');
 
-    if (err instanceof Error) {
-      log.error(err.message);
+    if (error instanceof Error) {
+      log.error(error.message);
     } else {
-      log.error(String(err));
+      log.error(String(error));
     }
 
     process.exit(1);
