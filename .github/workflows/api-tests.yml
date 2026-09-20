@@ -1,16 +1,26 @@
 name: API Tests
 
+# An allowlist of apps/api/** missed the things apps/api is built from: the
+# workspace packages it imports, and bun.lock, which decides the versions it
+# resolves. Ignoring the two leaf apps instead fails safe - anything new runs
+# these tests until someone says otherwise.
 on:
   push:
     branches:
       - 'master'
-    paths:
-      - 'apps/api/**'
+    paths-ignore:
+      - 'apps/citizen/**'
+      - 'apps/web/**'
+      - 'datasets/**'
+      - '**.md'
   pull_request:
     branches:
       - 'master'
-    paths:
-      - 'apps/api/**'
+    paths-ignore:
+      - 'apps/citizen/**'
+      - 'apps/web/**'
+      - 'datasets/**'
+      - '**.md'
   workflow_dispatch:
 
 jobs:
