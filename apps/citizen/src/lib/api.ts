@@ -1,3 +1,4 @@
+// biome-ignore-all lint/style/noExcessiveClassesPerFile: ApiError is owned by and scoped to ApiClient.
 import { API_URL, RETRY_CONFIG } from "@/constants";
 import { storage } from "@/lib/storage";
 import type {
@@ -22,8 +23,6 @@ export class ApiError extends Error {
     this.status = status;
   }
 }
-
-const VALID_REPORT_TYPES = ["missed_collection", "illegal_dumping", "other"];
 
 class ApiClient {
   private readonly baseUrl = API_URL;
@@ -78,8 +77,9 @@ class ApiClient {
 
     let lastError: Error | null = null;
 
-    for (let attempt = 0; attempt < RETRY_CONFIG.MAX_ATTEMPTS; attempt++) {
+    for (let attempt = 0; attempt < RETRY_CONFIG.MAX_ATTEMPTS; attempt += 1) {
       try {
+        // biome-ignore lint/performance/noAwaitInLoops: each retry must wait for the previous attempt to fail.
         return await this.attemptRequest<T>(endpoint, options, headers);
       } catch (error: unknown) {
         lastError = error as Error;
@@ -224,10 +224,6 @@ class ApiClient {
         photo_url: input.photoUrl,
       }),
     });
-
-    if (!VALID_REPORT_TYPES.includes(response.type)) {
-      throw new ApiError("Tipo de reporte inválido", "INVALID_REPORT_TYPE");
-    }
 
     const status = this.mapStatus(response.status);
     if (!status) {

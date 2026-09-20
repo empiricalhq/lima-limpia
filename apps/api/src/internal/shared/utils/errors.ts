@@ -1,3 +1,4 @@
+// biome-ignore-all lint/style/noExcessiveClassesPerFile: a small, cohesive app-error hierarchy.
 import { type ContentfulStatusCode, HttpStatus } from './http-status';
 
 export class AppError extends Error {

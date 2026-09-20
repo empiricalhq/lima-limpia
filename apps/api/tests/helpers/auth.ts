@@ -113,7 +113,7 @@ export class Auth {
       throw new Error('No session cookie received');
     }
 
-    const cookie = cookieHeader.split(';')[0];
+    const [cookie] = cookieHeader.split(';');
     if (!cookie) {
       throw new Error('Invalid cookie format');
     }
@@ -137,7 +137,7 @@ export class Auth {
 
     const newCookieHeader = setActiveRes.headers.get('set-cookie');
     if (newCookieHeader) {
-      const newCookie = newCookieHeader.split(';')[0];
+      const [newCookie] = newCookieHeader.split(';');
       if (newCookie) {
         return newCookie;
       }

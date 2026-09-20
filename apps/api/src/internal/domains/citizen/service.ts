@@ -38,7 +38,7 @@ export class CitizenService extends BaseService {
       [userId],
     );
 
-    const profile = profileResult.rows[0];
+    const [profile] = profileResult.rows;
     if (!profile?.lat) {
       return { status: 'LOCATION_NOT_SET', message: 'Please set your location first' };
     }
@@ -49,7 +49,7 @@ export class CitizenService extends BaseService {
       [lat, lng],
     );
 
-    const nearbyTruck = nearbyResult.rows[0];
+    const [nearbyTruck] = nearbyResult.rows;
     if (nearbyTruck) {
       const { truck_id, truck_name, distance_km } = nearbyTruck;
 

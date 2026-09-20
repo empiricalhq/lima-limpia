@@ -36,7 +36,7 @@ export function useQuizProgress() {
         queryClient.getQueryData<QuizProgress>(["quizProgress"]) ??
         (await storage.getQuizProgress());
 
-      const today = new Date().toISOString().split("T")[0];
+      const [today] = new Date().toISOString().split("T");
 
       if (currentProgress.lastPlayed === today) {
         const newProgress: QuizProgress = {

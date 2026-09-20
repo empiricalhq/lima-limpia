@@ -1,8 +1,10 @@
 import { z } from 'zod';
 import { CommonSchemas } from '@/internal/shared/utils/validation';
 
+const CitizenIssueTypeSchema = z.enum(['missed_collection', 'illegal_dumping', 'other']);
+
 export const CreateCitizenIssueSchema = z.object({
-  type: z.enum(['missed_collection', 'illegal_dumping', 'other']),
+  type: CitizenIssueTypeSchema,
   description: CommonSchemas.description,
   photo_url: z.url().optional(),
   ...CommonSchemas.location.shape,
@@ -14,8 +16,9 @@ export const CreateDriverIssueSchema = z.object({
   ...CommonSchemas.location.shape,
 });
 
+// Admin-created issues are stored as citizen issue reports, so they share the same type enum.
 export const CreateAdminIssueSchema = z.object({
-  type: z.string().min(1, 'Type is required').max(100, 'Type cannot exceed 100 characters'),
+  type: CitizenIssueTypeSchema,
   description: CommonSchemas.description,
   ...CommonSchemas.location.shape,
 });

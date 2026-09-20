@@ -21,7 +21,7 @@ export class RouteRepository extends BaseRepository {
         estimated_duration_minutes,
         createdBy,
       ]);
-      const route = routeResult.rows[0];
+      const [route] = routeResult.rows;
 
       if (!route) {
         throw new Error('Database query failed to return created route.');

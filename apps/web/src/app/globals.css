@@ -1,3 +1,4 @@
+/* biome-ignore-all lint/style/noExcessiveLinesPerFile: this is the app's single global stylesheet. */
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -216,7 +217,7 @@ input[type="search"]::-webkit-search-cancel-button {
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: #111827;
+  background: rgb(17, 24, 39);
   cursor: pointer;
   border: 2px solid white;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -229,7 +230,7 @@ input[type="search"]::-webkit-search-cancel-button {
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: #111827;
+  background: rgb(17, 24, 39);
   cursor: pointer;
   border: 2px solid white;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -243,7 +244,7 @@ input[type="search"]::-webkit-search-cancel-button {
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: #111827;
+  background: rgb(17, 24, 39);
   cursor: pointer;
   border: 2px solid white;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
@@ -256,7 +257,7 @@ input[type="search"]::-webkit-search-cancel-button {
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: #111827;
+  background: rgb(17, 24, 39);
   cursor: pointer;
   border: 2px solid white;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
@@ -273,13 +274,13 @@ article {
     "calt" 1;
 }
 article pre code {
-  color: #e5e5e5;
+  color: rgb(229, 229, 229);
   font-size: 14px;
   line-height: 1.6;
 }
 article img {
   border-radius: 8px;
-  border: 1px solid #e5e5e5;
+  border: 1px solid rgb(229, 229, 229);
   margin: 2rem 0;
   width: 100%;
   height: auto;
@@ -294,14 +295,14 @@ article th,
 article td {
   padding: 12px;
   text-align: left;
-  border-bottom: 1px solid #e5e5e5;
+  border-bottom: 1px solid rgb(229, 229, 229);
 }
 article th {
   font-weight: 600;
-  color: #171717;
+  color: rgb(23, 23, 23);
 }
 article td {
-  color: #525252;
+  color: rgb(82, 82, 82);
 }
 
 .blur-word {

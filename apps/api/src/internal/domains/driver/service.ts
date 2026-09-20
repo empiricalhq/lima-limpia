@@ -59,7 +59,7 @@ export class DriverService extends BaseService {
         [driverId],
       );
 
-      const assignment = assignmentRes.rows[0];
+      const [assignment] = assignmentRes.rows;
       if (!assignment) {
         throw new ValidationError('No active assignment found for location update');
       }

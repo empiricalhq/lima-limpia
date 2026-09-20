@@ -1,3 +1,4 @@
+// biome-ignore-all lint/style/noExcessiveLinesPerFile: one cohesive password-reset test suite.
 import { afterAll, beforeEach, describe, expect, test } from 'bun:test';
 import { BaseTest } from './base-test';
 import { HTTP_STATUS, TEST_USERS } from './config';
@@ -53,7 +54,7 @@ describe('Password reset', () => {
   });
 
   test('user can reset password with valid token', async () => {
-    const email = TEST_USERS.citizen.email;
+    const { email } = TEST_USERS.citizen;
 
     // 1. trigger reset email
     const resetRequestResponse = await baseTest.ctx.client.post('/auth/request-password-reset', {
@@ -133,7 +134,7 @@ describe('Password reset', () => {
   });
 
   test('reset password validates minimum password length', async () => {
-    const email = TEST_USERS.citizen.email;
+    const { email } = TEST_USERS.citizen;
 
     // 1. Request reset email
     const resetRequestResponse = await baseTest.ctx.client.post('/auth/request-password-reset', {
@@ -173,8 +174,7 @@ describe('Password reset', () => {
   });
 
   test('user can reset password to the same password (no information disclosure)', async () => {
-    const email = TEST_USERS.citizen.email;
-    const currentPassword = TEST_USERS.citizen.password;
+    const { email, password: currentPassword } = TEST_USERS.citizen;
 
     // 1. Request password reset
     const resetRequestResponse = await baseTest.ctx.client.post('/auth/request-password-reset', {
@@ -220,7 +220,7 @@ describe('Password reset', () => {
   });
 
   test('reset password fails with expired token', async () => {
-    const email = TEST_USERS.citizen.email;
+    const { email } = TEST_USERS.citizen;
 
     // 1. Request password reset
     const resetRequestResponse = await baseTest.ctx.client.post('/auth/request-password-reset', {
@@ -270,7 +270,7 @@ describe('Password reset', () => {
   });
 
   test('token has correct expiration time set', async () => {
-    const email = TEST_USERS.citizen.email;
+    const { email } = TEST_USERS.citizen;
 
     // 1. Request password reset
     const resetRequestResponse = await baseTest.ctx.client.post('/auth/request-password-reset', {
@@ -306,7 +306,7 @@ describe('Password reset', () => {
   });
 
   test('token cannot be reused after successful password reset', async () => {
-    const email = TEST_USERS.citizen.email;
+    const { email } = TEST_USERS.citizen;
 
     // 1. Request password reset
     const resetRequestResponse = await baseTest.ctx.client.post('/auth/request-password-reset', {

@@ -29,7 +29,7 @@ function parseFrontmatter(fileContent: string) {
     return { metadata: {} as PostMetadata, content: fileContent };
   }
 
-  const frontMatterBlock = match[1];
+  const [, frontMatterBlock] = match;
   const content = fileContent.replace(FRONTMATTER_REGEX, '').trim();
   const frontMatterLines = frontMatterBlock.trim().split('\n');
   const metadata: Partial<PostMetadata> = {};

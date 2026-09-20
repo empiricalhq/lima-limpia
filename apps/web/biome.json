@@ -16,7 +16,10 @@
         "noDefaultExport": "off",
         "useComponentExportOnlyModules": "off",
         "noProcessEnv": "off",
-        "useNamingConvention": "off"
+        "useNamingConvention": "off",
+        "noJsxLiterals": "off",
+        "noTernary": "off",
+        "useExportsLast": "off"
       },
       "suspicious": {
         "recommended": true,

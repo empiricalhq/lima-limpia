@@ -37,8 +37,8 @@ class Storage {
       }
 
       return parsed;
-    } catch (e) {
-      console.error("Failed to get user from storage", e);
+    } catch (error) {
+      console.error("Failed to get user from storage", error);
       await this.delete(KEYS.USER);
       return null;
     }
@@ -47,17 +47,17 @@ class Storage {
   async setUser(user: User): Promise<void> {
     try {
       await this.set(KEYS.USER, user);
-    } catch (e) {
-      console.error("Failed to set user in storage", e);
-      throw new Error("No se pudo guardar el usuario");
+    } catch (error) {
+      console.error("Failed to set user in storage", error);
+      throw new Error("No se pudo guardar el usuario", { cause: error });
     }
   }
 
   async clearAuth(): Promise<void> {
     try {
       await this.delete(KEYS.USER);
-    } catch (e) {
-      console.error("Failed to clear auth from storage", e);
+    } catch (error) {
+      console.error("Failed to clear auth from storage", error);
     }
   }
 
@@ -87,10 +87,10 @@ class Storage {
       }
 
       return parsed;
-    } catch (e) {
+    } catch (error) {
       console.error(
         "CRITICAL: Failed to get quiz progress from storage. User data was NOT reset.",
-        e,
+        error,
       );
       return defaultValue;
     }
@@ -99,17 +99,17 @@ class Storage {
   async setQuizProgress(progress: QuizProgress): Promise<void> {
     try {
       await this.set(KEYS.QUIZ_PROGRESS, progress);
-    } catch (e) {
-      console.error("Failed to set quiz progress in storage", e);
-      throw new Error("No se pudo guardar el progreso");
+    } catch (error) {
+      console.error("Failed to set quiz progress in storage", error);
+      throw new Error("No se pudo guardar el progreso", { cause: error });
     }
   }
 
   async clearAllData(): Promise<void> {
     try {
       await Promise.all([this.clearAuth(), this.delete(KEYS.QUIZ_PROGRESS)]);
-    } catch (e) {
-      console.error("Failed to clear all data", e);
+    } catch (error) {
+      console.error("Failed to clear all data", error);
     }
   }
 }

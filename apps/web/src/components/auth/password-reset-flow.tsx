@@ -315,6 +315,7 @@ function ErrorView() {
   );
 }
 
+// biome-ignore lint/complexity/noExcessiveLinesPerFunction: coordinates two related forms (request/reset) that share flow state; splitting would just move code around.
 export function PasswordResetFlow({ className, mode = 'request', ...props }: PasswordResetFlowProps) {
   const [isPending, startTransition] = useTransition();
   const [flowState, setFlowState] = useState<FlowState>(mode === 'reset' ? 'reset' : 'request');

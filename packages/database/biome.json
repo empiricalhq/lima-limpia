@@ -11,6 +11,12 @@
       "security": {
         "recommended": true,
         "noSecrets": "off"
+      },
+      "style": {
+        "recommended": true,
+        "noJsxLiterals": "off",
+        "noTernary": "off",
+        "useExportsLast": "off"
       }
     }
   }

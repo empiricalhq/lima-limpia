@@ -33,6 +33,7 @@ export function ReportScreen() {
         if (error.code === "AUTH_EXPIRED") {
           message = "Tu sesión ha expirado. Por favor, inicia sesión de nuevo.";
         } else {
+          // biome-ignore lint/style/useDestructuring: `({ message } = error)` reassignment syntax is less clear here.
           message = error.message;
         }
       }

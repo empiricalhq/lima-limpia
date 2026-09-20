@@ -28,8 +28,8 @@ export class EmailService {
         subject: 'Restablecer tu contraseña (lima-limpia.pe)',
         html,
       });
-    } catch {
-      throw new Error('Failed to send password reset email');
+    } catch (error) {
+      throw new Error('Failed to send password reset email', { cause: error });
     }
   }
 

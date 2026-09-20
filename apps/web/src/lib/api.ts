@@ -14,8 +14,8 @@ const ERROR_MESSAGES: Record<number, string> = {
 
 class ApiError extends Error {
   status: number;
-  constructor(message: string, status: number) {
-    super(message);
+  constructor(message: string, status: number, options?: ErrorOptions) {
+    super(message, options);
     this.name = 'ApiError';
     this.status = status;
   }
@@ -27,7 +27,7 @@ async function handleSessionCookie(response: Response): Promise<void> {
     return;
   }
 
-  const tokenValue = setCookieHeader.split(';')[0].split('=')[1];
+  const [, tokenValue] = setCookieHeader.split(';')[0].split('=');
   (await cookies()).set('better-auth.session_token', tokenValue, {
     httpOnly: true,
     path: '/',
@@ -95,7 +95,10 @@ async function request<T>(
     if (error instanceof ApiError) {
       throw error;
     }
-    throw new ApiError(error instanceof Error ? error.message : 'API connection failed', HTTP_SERVICE_UNAVAILABLE);
+    // biome-ignore lint/style/useErrorCause: the rule doesn't see `cause` passed through ApiError's options param, but it reaches super(message, options).
+    throw new ApiError(error instanceof Error ? error.message : 'API connection failed', HTTP_SERVICE_UNAVAILABLE, {
+      cause: error,
+    });
   }
 }
 
@@ -114,6 +117,8 @@ const admin = {
   getDrivers: () => request<User[]>('/api/admin/drivers', {}, { ignoreSetCookie: true, revalidate: 60 }),
   createDriver: (data: { name: string; email: string; password: string }) =>
     post<User>('/api/admin/drivers', data, { ignoreSetCookie: true }),
+  createUser: (data: { name: string; email: string; password: string; role: 'admin' | 'supervisor' | 'driver' }) =>
+    post<User>('/api/admin/users', data, { ignoreSetCookie: true }),
   updateDriver: (id: string, data: { name: string; email: string; password?: string }) =>
     post<User>(`/api/admin/drivers/${id}`, data, { ignoreSetCookie: true }),
 

@@ -60,7 +60,7 @@ export function Toast({ toast }: ToastProps) {
 
   const backgroundColor = getBackgroundColor(toast.options.type);
   const textColor = theme.colors.textOnDark;
-  const action = toast.options.action;
+  const { action } = toast.options;
 
   return (
     <Animated.View style={[styles.container, animatedStyle]}>

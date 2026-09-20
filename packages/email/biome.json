@@ -9,7 +9,10 @@
     "rules": {
       "style": {
         "recommended": true,
-        "noDefaultExport": "off"
+        "noDefaultExport": "off",
+        "noJsxLiterals": "off",
+        "noTernary": "off",
+        "useExportsLast": "off"
       },
       "security": {
         "noSecrets": "off"

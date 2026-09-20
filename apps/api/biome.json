@@ -11,7 +11,10 @@
         "noMagicNumbers": "off",
         "noProcessEnv": "off",
         "recommended": true,
-        "useNamingConvention": "off"
+        "useNamingConvention": "off",
+        "noJsxLiterals": "off",
+        "noTernary": "off",
+        "useExportsLast": "off"
       },
       "suspicious": {
         "recommended": true,

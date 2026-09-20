@@ -20,7 +20,9 @@
         "useFilenamingConvention": "off",
         "useExportsLast": "off",
         "noProcessEnv": "off",
-        "useComponentExportOnlyModules": "off"
+        "useComponentExportOnlyModules": "off",
+        "noJsxLiterals": "off",
+        "noTernary": "off"
       },
       "suspicious": {
         "noConsole": "off",
