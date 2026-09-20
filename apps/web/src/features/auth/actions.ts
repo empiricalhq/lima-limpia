@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 
+import { requireProtectedRole } from '@/features/auth/lib';
 import { PROTECTED_ROLES } from '@/features/auth/roles';
 import { api } from '@/lib/api';
 import { ENV } from '@/lib/env';
@@ -59,7 +60,7 @@ async function validateUserRole(sessionCookie: string): Promise<void> {
 }
 
 async function setSessionCookie(sessionCookie: string): Promise<void> {
-  const tokenValue = sessionCookie.split(';')[0].split('=')[1];
+  const [, tokenValue] = sessionCookie.split(';')[0].split('=');
   (await cookies()).set('better-auth.session_token', tokenValue, {
     httpOnly: true,
     path: '/',
@@ -91,7 +92,7 @@ async function setupOrganization(sessionCookie: string): Promise<string> {
   // - global org could be "Ministerio del Ambiente"
   // - first-level could be "Municipalidad de X"
   // - etc.
-  const firstOrg = organizations[0];
+  const [firstOrg] = organizations;
 
   const setActiveResponse = await fetch(`${ENV.API_BASE_URL}/api/auth/organization/set-active`, {
     method: 'POST',
@@ -109,7 +110,7 @@ async function setupOrganization(sessionCookie: string): Promise<string> {
 
   const newSessionCookie = setActiveResponse.headers.get('Set-Cookie');
   if (newSessionCookie) {
-    const newCookie = newSessionCookie.split(';')[0];
+    const [newCookie] = newSessionCookie.split(';');
     if (newCookie) {
       return newCookie;
     }
@@ -139,7 +140,7 @@ export async function signIn(data: SignInSchema): Promise<ActionResult> {
   redirect('/dashboard');
 }
 
-export async function signUp(data: SignUpSchema) {
+export async function createUser(data: SignUpSchema): Promise<ActionResult> {
   const validatedFields = signUpSchema.safeParse(data);
 
   if (!validatedFields.success) {
@@ -147,9 +148,10 @@ export async function signUp(data: SignUpSchema) {
   }
 
   try {
-    await api.post('/api/auth/sign-up/email', {
-      ...validatedFields.data,
-    });
+    await requireProtectedRole();
+
+    const { name, email, password, role } = validatedFields.data;
+    await api.admin.createUser({ name, email, password, role });
   } catch (error: unknown) {
     if (error instanceof Error && error.message.toLowerCase().includes('unique constraint')) {
       return { error: 'Un usuario con este correo ya existe' };
@@ -158,6 +160,8 @@ export async function signUp(data: SignUpSchema) {
   }
 
   revalidatePath('/drivers', 'page');
+  revalidatePath('/supervisors', 'page');
+  return { error: undefined };
 }
 
 export async function signOut() {

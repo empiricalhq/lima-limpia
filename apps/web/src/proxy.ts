@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import type { AuthContext } from './features/auth/lib';
-import { PROTECTED_ROLES, SETTINGS_ROLES } from './features/auth/roles';
+import { hasAnyRole, PROTECTED_ROLES, SETTINGS_ROLES } from './features/auth/roles';
 import { ENV } from './lib/env';
 
 const AUTH_ROUTES = ['/signin'];
@@ -43,15 +43,13 @@ function redirectToSignIn(request: NextRequest, pathname: string): NextResponse 
 }
 
 function guardProtectedRoute(request: NextRequest, pathname: string, userRoles: string[]): NextResponse | null {
-  const hasAccess = PROTECTED_ROLES.some((role) => userRoles.includes(role));
-  if (!hasAccess) {
+  if (!hasAnyRole(userRoles, PROTECTED_ROLES)) {
     const response = NextResponse.redirect(new URL('/signin', request.url));
     response.cookies.delete('better-auth.session_token');
     return response;
   }
 
-  const hasSettingsAccess = SETTINGS_ROLES.some((role) => userRoles.includes(role));
-  if (pathname.startsWith(SETTINGS_ROUTE_PREFIX) && !hasSettingsAccess) {
+  if (pathname.startsWith(SETTINGS_ROUTE_PREFIX) && !hasAnyRole(userRoles, SETTINGS_ROLES)) {
     return NextResponse.redirect(new URL(PROTECTED_ROUTE_PREFIX, request.url));
   }
 

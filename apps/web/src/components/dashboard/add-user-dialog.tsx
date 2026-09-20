@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { signUp } from '@/features/auth/actions';
+import { createUser } from '@/features/auth/actions';
 import { type SignUpSchema, signUpSchema } from '@/features/auth/schemas';
 import { cn } from '@/lib/utils';
 
@@ -133,7 +133,7 @@ function AddUserForm({ onClose }: { onClose: () => void }) {
 
   function onSubmit(data: SignUpSchema) {
     startTransition(async () => {
-      const result = await signUp(data);
+      const result = await createUser(data);
       if (result?.error) {
         toast.error(result.error);
       } else {

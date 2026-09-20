@@ -1,8 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { getAuth, requireUser } from '@/features/auth/lib';
-import { PROTECTED_ROLES } from '@/features/auth/roles';
+import { requireProtectedRole } from '@/features/auth/lib';
 import { api } from '@/lib/api';
 import type { Route } from '@/lib/api-contract';
 import { type CreateRouteSchema, createRouteSchema } from './schemas';
@@ -11,14 +10,7 @@ interface ActionResult {
   error?: string;
 }
 export async function getRoutes(): Promise<Route[]> {
-  await requireUser();
-
-  const auth = await getAuth();
-  const userRoles = auth?.user?.role?.split(',') ?? [];
-
-  if (!PROTECTED_ROLES.some((role) => userRoles.includes(role))) {
-    throw new Error('Unauthorized');
-  }
+  await requireProtectedRole();
 
   return await api.admin.getRoutes();
 }
@@ -30,14 +22,7 @@ export async function createRoute(data: CreateRouteSchema): Promise<ActionResult
   }
 
   try {
-    await requireUser();
-
-    const auth = await getAuth();
-    const userRoles = auth?.user?.role?.split(',') ?? [];
-
-    if (!PROTECTED_ROLES.some((role) => userRoles.includes(role))) {
-      throw new Error('Unauthorized');
-    }
+    await requireProtectedRole();
 
     await api.admin.createRoute(validatedFields.data);
   } catch (error: unknown) {

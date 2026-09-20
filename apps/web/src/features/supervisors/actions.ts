@@ -1,8 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { getAuth, requireUser } from '@/features/auth/lib';
-import { PROTECTED_ROLES } from '@/features/auth/roles';
+import { requireProtectedRole } from '@/features/auth/lib';
 import { api } from '@/lib/api';
 import type { User } from '@/lib/api-contract';
 import {
@@ -17,12 +16,7 @@ interface ActionResult {
 }
 
 export async function getSupervisors(): Promise<User[]> {
-  await requireUser();
-  const auth = await getAuth();
-  const userRoles = auth?.user?.role?.split(',') ?? [];
-  if (!PROTECTED_ROLES.some((role) => userRoles.includes(role))) {
-    throw new Error('Unauthorized');
-  }
+  await requireProtectedRole();
   return await api.admin.getSupervisors();
 }
 
@@ -33,12 +27,7 @@ export async function createSupervisor(data: CreateSupervisorSchema): Promise<Ac
   }
 
   try {
-    await requireUser();
-    const auth = await getAuth();
-    const userRoles = auth?.user?.role?.split(',') ?? [];
-    if (!PROTECTED_ROLES.some((role) => userRoles.includes(role))) {
-      throw new Error('Unauthorized');
-    }
+    await requireProtectedRole();
     const { name, email, password } = validatedFields.data;
     await api.admin.createSupervisor({ name, email, password });
   } catch (error: unknown) {
@@ -56,12 +45,7 @@ export async function updateSupervisor(data: UpdateSupervisorSchema): Promise<Ac
   }
 
   try {
-    await requireUser();
-    const auth = await getAuth();
-    const userRoles = auth?.user?.role?.split(',') ?? [];
-    if (!PROTECTED_ROLES.some((role) => userRoles.includes(role))) {
-      throw new Error('Unauthorized');
-    }
+    await requireProtectedRole();
     const { id, name, email, password } = validatedFields.data;
     await api.admin.updateSupervisor(id, {
       name,

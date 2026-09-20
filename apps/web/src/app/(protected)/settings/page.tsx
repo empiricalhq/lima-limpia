@@ -1,18 +1,15 @@
 import { redirect } from 'next/navigation';
 import { AddUserButton } from '@/components/dashboard/add-user-button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { getAuth, requireUser } from '@/features/auth/lib';
-import { SETTINGS_ROLES } from '@/features/auth/roles';
+import { getUserRoles, requireUser } from '@/features/auth/lib';
+import { hasAnyRole, SETTINGS_ROLES } from '@/features/auth/roles';
 
 export default async function SettingsPage() {
   await requireUser();
 
-  const auth = await getAuth();
-  const userRoles = auth?.user?.role?.split(',') ?? [];
+  const userRoles = await getUserRoles();
 
-  const hasSettingsAccess = SETTINGS_ROLES.some((settingRole) => userRoles.includes(settingRole));
-
-  if (!hasSettingsAccess) {
+  if (!hasAnyRole(userRoles, SETTINGS_ROLES)) {
     redirect('/dashboard');
   }
 
