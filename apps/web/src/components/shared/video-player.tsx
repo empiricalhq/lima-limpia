@@ -8,6 +8,63 @@ interface VideoPlayerProps {
   className?: string;
 }
 
+const PERCENT_SCALE = 100;
+const LOW_VOLUME_THRESHOLD = 0.5;
+
+function VolumeIcon({ isMuted, volume }: { isMuted: boolean; volume: number }) {
+  if (isMuted || volume === 0) {
+    return (
+      <svg
+        aria-hidden="true"
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+      >
+        <polygon points="11,5 6,9 2,9 2,15 6,15 11,19 11,5" />
+        <line x1="23" y1="9" x2="17" y2="15" />
+        <line x1="17" y1="9" x2="23" y2="15" />
+      </svg>
+    );
+  }
+
+  if (volume < LOW_VOLUME_THRESHOLD) {
+    return (
+      <svg
+        aria-hidden="true"
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+      >
+        <polygon points="11,5 6,9 2,9 2,15 6,15 11,19 11,5" />
+        <path d="M15.54,8.46a5,5,0,0,1,0,7.07" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg
+      aria-hidden="true"
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+    >
+      <polygon points="11,5 6,9 2,9 2,15 6,15 11,19 11,5" />
+      <path d="M15.54,8.46a5,5,0,0,1,0,7.07" />
+      <path d="M19.07,4.93a10,10,0,0,1,0,14.14" />
+    </svg>
+  );
+}
+
+// biome-ignore lint/complexity/noExcessiveLinesPerFunction: one video element with tightly coupled playback state; VolumeIcon is already extracted.
 export function VideoPlayer({ src, poster, className = '' }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -60,7 +117,7 @@ export function VideoPlayer({ src, poster, className = '' }: VideoPlayerProps) {
       return;
     }
 
-    const time = (Number.parseFloat(event.target.value) / 100) * duration;
+    const time = (Number.parseFloat(event.target.value) / PERCENT_SCALE) * duration;
     video.currentTime = time;
     setCurrentTime(time);
   };
@@ -118,7 +175,7 @@ export function VideoPlayer({ src, poster, className = '' }: VideoPlayerProps) {
             type="range"
             min="0"
             max="100"
-            value={duration ? (currentTime / duration) * 100 : 0}
+            value={duration ? (currentTime / duration) * PERCENT_SCALE : 0}
             onChange={handleSeek}
             className="video-progress-slider w-full h-1.5 bg-gray-200 rounded-full appearance-none cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2"
             aria-label="Seek"
@@ -160,48 +217,7 @@ export function VideoPlayer({ src, poster, className = '' }: VideoPlayerProps) {
                 aria-label={isMuted ? 'Unmute' : 'Mute'}
                 style={{ touchAction: 'manipulation' }}
               >
-                {isMuted || volume === 0 ? (
-                  <svg
-                    aria-hidden="true"
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <polygon points="11,5 6,9 2,9 2,15 6,15 11,19 11,5" />
-                    <line x1="23" y1="9" x2="17" y2="15" />
-                    <line x1="17" y1="9" x2="23" y2="15" />
-                  </svg>
-                ) : volume < 0.5 ? (
-                  <svg
-                    aria-hidden="true"
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <polygon points="11,5 6,9 2,9 2,15 6,15 11,19 11,5" />
-                    <path d="M15.54,8.46a5,5,0,0,1,0,7.07" />
-                  </svg>
-                ) : (
-                  <svg
-                    aria-hidden="true"
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <polygon points="11,5 6,9 2,9 2,15 6,15 11,19 11,5" />
-                    <path d="M15.54,8.46a5,5,0,0,1,0,7.07" />
-                    <path d="M19.07,4.93a10,10,0,0,1,0,14.14" />
-                  </svg>
-                )}
+                <VolumeIcon isMuted={isMuted} volume={volume} />
               </button>
 
               <input
