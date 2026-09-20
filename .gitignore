@@ -2,6 +2,9 @@ node_modules/
 
 .env
 .env.test
+.env*.local
+.dev.vars
+.dev.vars.*
 *.ps1
 .vercel
 .fallow
