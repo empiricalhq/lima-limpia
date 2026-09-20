@@ -1,0 +1,50 @@
+name: Checks
+
+on:
+  push:
+    branches:
+      - 'master'
+  pull_request:
+    branches:
+      - 'master'
+  workflow_dispatch:
+
+jobs:
+  static:
+    name: format, lint, typecheck
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: setup bun
+        uses: oven-sh/setup-bun@v2
+
+      - run: bun install --frozen-lockfile
+
+      - run: bun run format:check
+
+      - run: bun run lint
+
+      - run: bun run typecheck
+
+  web:
+    name: web build
+    runs-on: ubuntu-latest
+
+    # next build evaluates apps/web/src/lib/env.ts while collecting page data
+    # and throws without these. Nothing is requested during a build, so the
+    # values only have to parse as URLs.
+    env:
+      API_BASE_URL: http://localhost:4000
+      NEXT_PUBLIC_BASE_URL: http://localhost:3000
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: setup bun
+        uses: oven-sh/setup-bun@v2
+
+      - run: bun install --frozen-lockfile
+
+      - run: bun --filter @lima-garbage/web build
