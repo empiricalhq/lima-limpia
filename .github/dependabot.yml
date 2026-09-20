@@ -67,10 +67,6 @@ updates:
         patterns:
           - 'react*'
           - '@types/react*'
-      eslint:
-        patterns:
-          - 'eslint*'
-          - '@eslint/*'
 
   - package-ecosystem: 'npm'
     directory: '/packages/database'

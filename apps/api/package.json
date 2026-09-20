@@ -12,7 +12,8 @@
     "test": "bun test-runner.ts",
     "test:dev": "bun --hot --env-file=../../.env.test src/cmd/server.ts",
     "format": "biome format --write .",
-    "lint": "biome lint ."
+    "lint": "biome lint .",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@hono/zod-validator": "^0.9.0",
@@ -26,7 +27,7 @@
   "devDependencies": {
     "@types/bun": "1.4.2",
     "@types/pg": "^8.15.6",
-    "typescript": "5.9.3",
+    "typescript": "7.0.2",
     "wrangler": "^4.46.0"
   }
 }

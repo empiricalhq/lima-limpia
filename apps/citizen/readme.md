@@ -41,7 +41,8 @@ bun --filter @lima-garbage/citizens android
 bun --filter @lima-garbage/citizens lint
 ```
 
-The lint setup follows [Expo's ESLint guide](https://docs.expo.dev/guides/using-eslint/).
+Linting is Biome, with oxlint for the React Compiler rules Biome does not
+implement. Both run from the repository root. The app has no ESLint setup.
 
 The `dev` script uses the `development` EAS profile. Log in first when needed:
 

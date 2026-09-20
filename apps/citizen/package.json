@@ -8,10 +8,9 @@
     "prebuild": "expo prebuild",
     "dev": "eas build --platform android --profile development",
     "login": "eas login",
-    "lint:eslint": "eslint \"**/*.{js,jsx,ts,tsx}\"",
-    "lint": "bun run lint:eslint && biome lint .",
+    "lint": "biome lint .",
+    "typecheck": "tsc --noEmit",
     "format": "biome format --write .",
-    "format:eslint": "eslint \"**/*.{js,jsx,ts,tsx}\" --fix",
     "postinstall": "bun install -g eas-cli"
   },
   "dependencies": {
@@ -46,9 +45,7 @@
   "devDependencies": {
     "@babel/core": "^7.29.7",
     "@types/react": "~19.3.0",
-    "eslint": "^9.39.5",
-    "eslint-config-expo": "~57.0.2",
-    "typescript": "~6.0.3"
+    "typescript": "7.0.2"
   },
   "main": "expo-router/entry",
   "private": true,

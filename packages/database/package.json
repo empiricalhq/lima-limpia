@@ -10,15 +10,13 @@
     "db:push": "bun --env-file=../../.env drizzle-kit push --config ./drizzle.config.ts --force",
     "setup:admin": "bun --env-file=../../.env scripts/create-admin.ts",
     "db:seed": "bun --env-file=../../.env scripts/seed.ts",
-
     "db:push:test": "bun --env-file=../../.env.test drizzle-kit push --config ./drizzle.config.ts --force",
     "setup:admin:test": "bun --env-file=../../.env.test scripts/create-admin.ts",
-
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
-
     "format": "biome format --write .",
-    "lint": "biome lint ."
+    "lint": "biome lint .",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@clack/prompts": "1.8.1",
@@ -31,6 +29,6 @@
     "@paralleldrive/cuid2": "^3.0.4",
     "@types/pg": "^8.15.5",
     "drizzle-kit": "^0.31.6",
-    "typescript": "5.9.3"
+    "typescript": "7.0.2"
   }
 }

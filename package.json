@@ -11,11 +11,13 @@
     "clean": "rm -rf node_modules packages/database/node_modules apps/citizen/node_modules bun.lock packages/database/bun.lock apps/citizen/bun.lock",
     "format": "biome format --write .",
     "format:check": "biome format .",
-    "lint": "biome lint . && bun --filter @lima-garbage/citizens lint:eslint"
+    "lint": "biome lint . && oxlint",
+    "typecheck": "bun --filter '*' typecheck"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.14",
-    "@types/bun": "^1.4.2"
+    "@types/bun": "^1.4.2",
+    "oxlint": "1.83.0"
   },
   "resolutions": {
     "@types/react": "19.3.0",

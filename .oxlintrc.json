@@ -1,0 +1,20 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["react"],
+  "categories": {
+    "correctness": "warn"
+  },
+  "rules": {
+    "eslint/no-unused-vars": "off"
+  },
+  "ignorePatterns": ["**/.expo/**", "**/.next/**", "**/android/**", "**/dist/**", "**/ios/**"],
+  "overrides": [
+    {
+      "files": ["apps/citizen/**"],
+      "rules": {
+        "react/immutability": "off",
+        "react/set-state-in-effect": "off"
+      }
+    }
+  ]
+}

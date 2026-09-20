@@ -7,16 +7,18 @@
   "scripts": {
     "dev": "email dev -p 3001 --dir templates",
     "format": "biome format --write .",
-    "lint": "biome lint ."
+    "lint": "biome lint .",
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@react-email/components": "1.0.12",
     "@react-email/preview-server": "5.2.10",
+    "@types/bun": "^1.4.2",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "react-email": "6.9.3",
-    "typescript": "5.9.3"
+    "typescript": "7.0.2"
   }
 }
