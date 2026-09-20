@@ -6,7 +6,7 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "db:generate": "drizzle-kit generate --config ./drizzle.config.ts",
+    "db:generate": "drizzle-kit generate --config ./drizzle.config.ts && biome format --write ./migrations",
     "db:push": "bun --env-file=../../.env drizzle-kit push --config ./drizzle.config.ts --force",
     "setup:admin": "bun --env-file=../../.env scripts/create-admin.ts",
     "db:seed": "bun --env-file=../../.env scripts/seed.ts",
@@ -20,15 +20,15 @@
   },
   "dependencies": {
     "@clack/prompts": "1.8.1",
-    "better-auth": "~1.7.2",
+    "better-auth": "~1.7.5",
     "drizzle-orm": "^0.45.2",
-    "pg": "^8.16.3",
+    "pg": "^8.23.0",
     "picocolors": "1.1.1"
   },
   "devDependencies": {
-    "@paralleldrive/cuid2": "^3.0.4",
-    "@types/pg": "^8.15.5",
-    "drizzle-kit": "^0.31.6",
+    "@paralleldrive/cuid2": "^3.3.0",
+    "@types/pg": "^8.23.1",
+    "drizzle-kit": "^0.31.10",
     "typescript": "7.0.2"
   }
 }
