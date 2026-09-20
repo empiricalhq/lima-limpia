@@ -52,6 +52,6 @@ export async function requireRole(allowedRoles: Role[]): Promise<User> {
 }
 
 /** Require a signed-in user with one of the dashboard-wide protected roles. */
-export function requireProtectedRole(): Promise<User> {
+export async function requireProtectedRole(): Promise<User> {
   return requireRole(PROTECTED_ROLES);
 }
