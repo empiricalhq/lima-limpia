@@ -79,7 +79,7 @@ export function DashboardSidebar({ user, memberRole }: DashboardSidebarProps) {
     (item) => !item.roles || (memberRole && item.roles.includes(memberRole as 'admin' | 'owner')),
   );
 
-  const SidebarContent = () => (
+  const sidebarContent = (
     <div className="flex h-full flex-col">
       <div className="border-b px-6 py-4">
         <Link href="/dashboard" className="flex items-center space-x-2">
@@ -115,8 +115,6 @@ export function DashboardSidebar({ user, memberRole }: DashboardSidebarProps) {
   );
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 border-r bg-background lg:block">
-      <SidebarContent />
-    </aside>
+    <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 border-r bg-background lg:block">{sidebarContent}</aside>
   );
 }
