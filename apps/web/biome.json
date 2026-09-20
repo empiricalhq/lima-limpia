@@ -8,11 +8,11 @@
     },
     "rules": {
       "security": {
-        "recommended": true,
+        "preset": "recommended",
         "noSecrets": "off"
       },
       "style": {
-        "recommended": true,
+        "preset": "recommended",
         "noDefaultExport": "off",
         "useComponentExportOnlyModules": "off",
         "noProcessEnv": "off",
@@ -22,11 +22,11 @@
         "useExportsLast": "off"
       },
       "suspicious": {
-        "recommended": true,
+        "preset": "recommended",
         "noUnknownAtRules": "off"
       },
       "performance": {
-        "recommended": true,
+        "preset": "recommended",
         "noNamespaceImport": "off",
         "noJsxPropsBind": "off"
       }

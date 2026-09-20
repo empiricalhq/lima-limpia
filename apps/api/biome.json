@@ -5,19 +5,19 @@
     "rules": {
       "complexity": {
         "noExcessiveLinesPerFunction": "off",
-        "recommended": true
+        "preset": "recommended"
       },
       "style": {
         "noMagicNumbers": "off",
         "noProcessEnv": "off",
-        "recommended": true,
+        "preset": "recommended",
         "useNamingConvention": "off",
         "noJsxLiterals": "off",
         "noTernary": "off",
         "useExportsLast": "off"
       },
       "suspicious": {
-        "recommended": true,
+        "preset": "recommended",
         "useAwait": "off"
       },
       "security": {

@@ -8,7 +8,7 @@
     },
     "rules": {
       "style": {
-        "recommended": true,
+        "preset": "recommended",
         "noDefaultExport": "off",
         "noJsxLiterals": "off",
         "noTernary": "off",

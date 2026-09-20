@@ -4,16 +4,16 @@
   "linter": {
     "rules": {
       "performance": {
-        "recommended": true,
+        "preset": "recommended",
         "noReExportAll": "off",
         "noBarrelFile": "off"
       },
       "security": {
-        "recommended": true,
+        "preset": "recommended",
         "noSecrets": "off"
       },
       "style": {
-        "recommended": true,
+        "preset": "recommended",
         "noJsxLiterals": "off",
         "noTernary": "off",
         "useExportsLast": "off"
