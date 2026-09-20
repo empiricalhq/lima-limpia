@@ -1,5 +1,5 @@
 monorepo_root = true
 
 [tools]
-bun = "1.4.0"
-biome = "2.5.11"
+bun = "1.4.2"
+biome = "2.5.14"

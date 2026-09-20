@@ -24,7 +24,7 @@
     "zod": "^4.1.12"
   },
   "devDependencies": {
-    "@types/bun": "1.4.0",
+    "@types/bun": "1.4.2",
     "@types/pg": "^8.15.6",
     "typescript": "5.9.3",
     "wrangler": "^4.46.0"
