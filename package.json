@@ -15,7 +15,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.11",
-    "@types/bun": "^1.4.0"
+    "@types/bun": "^1.4.2"
   },
   "resolutions": {
     "@types/react": "19.2.18",
