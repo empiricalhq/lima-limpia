@@ -1,7 +1,7 @@
 import { afterAll, beforeEach, describe, expect, test } from 'bun:test';
 import { BaseTest } from './base-test';
 import { HTTP_STATUS } from './config';
-import type { ErrorResponse, Route, SuccessResponse, Truck } from './types';
+import type { ErrorResponse, Route, SuccessResponse, Truck, User } from './types';
 import { createTestRoute, createTestTruck } from './utils';
 
 describe('Admin API', () => {
@@ -82,6 +82,54 @@ describe('Admin API', () => {
         id: expect.any(String),
         name: routeData.name,
       });
+    });
+  });
+
+  describe('Users', () => {
+    test('creates a supervisor who can sign in and use their organization role', async () => {
+      const email = `supervisor-${Date.now()}@test.com`;
+
+      const createResponse = await baseTest.ctx.client.post<SuccessResponse<User>>(
+        '/admin/users',
+        { name: 'Test Supervisor', email, password: 'supervisor-password-123', role: 'supervisor' },
+        baseTest.ctx.auth.getHeaders('admin'),
+      );
+
+      expect(createResponse.status).toBe(HTTP_STATUS.CREATED);
+      expect(createResponse.data.data).toMatchObject({ email, role: 'supervisor' });
+
+      // The role only means anything if the user also landed in the organization's member table:
+      // org-gated routes resolve permissions from membership, not the bare global role.
+      const session = await baseTest.ctx.auth.login(email, 'supervisor-password-123');
+      expect(session.member).toMatchObject({ role: 'supervisor' });
+
+      const trucksResponse = await baseTest.ctx.client.get<SuccessResponse<Truck[]>>('/admin/trucks', {
+        Cookie: session.cookie,
+      });
+      expect(trucksResponse.status).toBe(HTTP_STATUS.OK);
+    });
+
+    test('forbids a supervisor from deleting a truck', async () => {
+      const truckData = createTestTruck('Supervisor-guarded Truck');
+      const created = await baseTest.ctx.client.post<SuccessResponse<Truck>>(
+        '/admin/trucks',
+        truckData,
+        baseTest.ctx.auth.getHeaders('admin'),
+      );
+
+      const email = `supervisor-delete-${Date.now()}@test.com`;
+      await baseTest.ctx.client.post(
+        '/admin/users',
+        { name: 'Delete-Blocked Supervisor', email, password: 'supervisor-password-123', role: 'supervisor' },
+        baseTest.ctx.auth.getHeaders('admin'),
+      );
+      const session = await baseTest.ctx.auth.login(email, 'supervisor-password-123');
+
+      const deleteResponse = await baseTest.ctx.client.delete(`/admin/trucks/${created.data.data.id}`, {
+        Cookie: session.cookie,
+      });
+
+      expect(deleteResponse.status).toBe(HTTP_STATUS.FORBIDDEN);
     });
   });
 

@@ -69,3 +69,6 @@ export const appPluginRoles: { [key in AppRole]: ReturnType<(typeof appAc)['newR
     location: ['read'],
   }),
 };
+
+/** A resource/action permission check, e.g. `{ truck: ['create'] }`. Every role above declares all resource keys, so any role's `authorize` signature is representative. */
+export type PermissionRequest = Parameters<(typeof appPluginRoles)['owner']['authorize']>[0];

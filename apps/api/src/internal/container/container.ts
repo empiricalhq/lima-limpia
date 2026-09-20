@@ -15,7 +15,11 @@ import { TruckRepository } from '@/internal/domains/trucks/repository';
 import { appAc, appPluginRoles } from '@/internal/shared/auth/roles';
 import { loadConfig } from '@/internal/shared/config/config';
 import { Database } from '@/internal/shared/database/database';
-import { createAuthMiddleware, createCitizenOnlyMiddleware } from '@/internal/shared/middleware/auth';
+import {
+  createAuthMiddleware,
+  createCitizenOnlyMiddleware,
+  createPermissionMiddleware,
+} from '@/internal/shared/middleware/auth';
 import { createCorsMiddleware } from '@/internal/shared/middleware/cors';
 import { EmailService } from '@/internal/shared/services/email';
 
@@ -39,11 +43,12 @@ export function createContainer() {
   // middleware
   const corsMiddleware = createCorsMiddleware(config);
   const authMiddleware = createAuthMiddleware(authService);
+  const permissionMiddleware = createPermissionMiddleware(authService);
   const citizenOnlyMiddleware = createCitizenOnlyMiddleware(authService);
 
   // handlers (presentation layer)
   const authHandler = createAuthHandler(authService);
-  const adminHandler = createAdminHandler(adminService, authMiddleware);
+  const adminHandler = createAdminHandler(adminService, permissionMiddleware);
   const driverHandler = createDriverHandler(driverService, authMiddleware);
   const citizenHandler = createCitizenHandler(citizenService, citizenOnlyMiddleware);
   const healthHandler = createHealthHandler();

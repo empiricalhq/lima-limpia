@@ -1,4 +1,5 @@
 import { APIError } from 'better-auth/api';
+import type { AppRole } from '@/internal/shared/auth/roles';
 import { BaseService } from '@/internal/shared/services/base-service';
 import { ConflictError, NotFoundError, ValidationError } from '@/internal/shared/utils/errors';
 import type { CreateAssignmentRequest, RouteAssignment } from '../assignments/models';
@@ -56,24 +57,57 @@ export class AdminService extends BaseService {
         role: 'driver',
       }));
     } catch (error) {
-      throw new Error('Failed to retrieve drivers due to an internal error.', { cause: error });
+      this.handleAuthApiError(error);
     }
   }
 
-  async createDriver(data: { name: string; email: string; password: string }): Promise<UserWithRole> {
+  async createDriver(
+    data: { name: string; email: string; password: string },
+    organizationId: string,
+  ): Promise<UserWithRole> {
+    return this.createOrganizationUser({ ...data, role: 'driver' }, organizationId);
+  }
+
+  async createUser(
+    data: { name: string; email: string; password: string; role: Exclude<AppRole, 'owner' | 'citizen'> },
+    organizationId: string,
+  ): Promise<UserWithRole> {
+    return this.createOrganizationUser(data, organizationId);
+  }
+
+  /**
+   * Create a better-auth user and add them to the organization with the given role. Both steps
+   * are required: better-auth's global user role alone does not grant access to org-scoped
+   * routes, which resolve roles from organization membership (see `resolveActiveOrganizationRoles`
+   * in shared/middleware/auth.ts). A user created without membership can never sign in past those
+   * checks.
+   */
+  private async createOrganizationUser(
+    data: { name: string; email: string; password: string; role: AppRole },
+    organizationId: string,
+  ): Promise<UserWithRole> {
+    let userId: string;
+
     try {
       const result = await this.authService.api.createUser({
-        body: {
-          name: data.name,
-          email: data.email,
-          password: data.password,
-          role: 'driver',
-        },
+        body: { name: data.name, email: data.email, password: data.password, role: data.role },
       });
-      return { ...result.user, role: 'driver', createdAt: new Date(result.user.createdAt) };
+      userId = result.user.id;
     } catch (error) {
       this.handleAuthApiError(error);
     }
+
+    try {
+      await this.authService.api.addMember({
+        body: { userId, role: data.role, organizationId },
+      });
+    } catch (error) {
+      // biome-ignore lint/suspicious/noEmptyBlockStatements: cleanup is best effort; the membership error is what the caller should see.
+      await this.authService.api.removeUser({ body: { userId } }).catch(() => {});
+      this.handleAuthApiError(error);
+    }
+
+    return { id: userId, name: data.name, email: data.email, createdAt: new Date(), role: data.role };
   }
 
   async getTrucks(): Promise<TruckWithDetails[]> {
@@ -120,13 +154,10 @@ export class AdminService extends BaseService {
   }
 
   async createIssue(
-    data: { type: string; description?: string; lat: number; lng: number },
+    data: { type: CitizenIssueType; description?: string; lat: number; lng: number },
     createdBy: string,
   ): Promise<void> {
-    await this.issueRepo.createCitizenIssue(createdBy, {
-      ...data,
-      type: data.type as CitizenIssueType,
-    });
+    await this.issueRepo.createCitizenIssue(createdBy, data);
   }
 
   private handleAuthApiError(error: unknown): never {
