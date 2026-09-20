@@ -13,47 +13,25 @@ export class EmailService {
     this.fromName = config.fromName;
   }
 
+  // resetUrl is Better Auth's own callback. It checks the token and redirects to
+  // the page with ?token= or ?error=, so the link must reach it unaltered.
   async sendPasswordResetEmail(to: string, resetUrl: string, userName?: string): Promise<void> {
-    const frontendResetUrl = this.constructFrontendResetUrl(resetUrl);
-
     try {
-      const html = await renderPasswordReset({
-        userName,
-        resetUrl: frontendResetUrl,
-      });
+      const html = await renderPasswordReset({ userName, resetUrl });
 
-      await this.resend.emails.send({
+      // Resend reports a rejected send in the result rather than by throwing.
+      const { error } = await this.resend.emails.send({
         from: `${this.fromName} <${this.fromEmail}>`,
         to: [to],
         subject: 'Restablecer tu contraseña (lima-limpia.pe)',
         html,
       });
+
+      if (error) {
+        throw new Error(`${error.name}: ${error.message}`);
+      }
     } catch (error) {
       throw new Error('Failed to send password reset email', { cause: error });
-    }
-  }
-
-  private constructFrontendResetUrl(betterAuthUrl: string): string {
-    try {
-      const url = new URL(betterAuthUrl);
-
-      // Better Auth puts the reset token in the generated URL path.
-      const pathParts = url.pathname.split('/');
-      const token = pathParts.at(-1);
-
-      // The callback URL identifies the frontend page that receives the token.
-      const callbackURL = url.searchParams.get('callbackURL');
-
-      if (!(callbackURL && token)) {
-        return betterAuthUrl;
-      }
-
-      const frontendUrl = new URL(callbackURL);
-      frontendUrl.searchParams.set('token', token);
-
-      return frontendUrl.toString();
-    } catch {
-      return betterAuthUrl;
     }
   }
 }
