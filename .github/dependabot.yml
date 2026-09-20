@@ -1,13 +1,17 @@
 version: 2
 
-# apps/* and packages/* are bun workspaces sharing one lockfile, so the npm
+# The ecosystem is 'bun', not 'npm': only bun's updater writes bun.lock, and a
+# pull request that moves package.json alone fails `bun install --frozen-lockfile`.
+# Bun has no security updates, so an alert still needs a bump by hand.
+#
+# apps/* and packages/* are bun workspaces sharing one lockfile, so the bun
 # entry for '/' already scans and updates every workspace manifest. A second
 # entry for a workspace directory does not add coverage, it duplicates it: each
 # apps/citizen bump used to arrive as two pull requests. Only apps/citizen gets
 # its own entry, because only it has a different owner for its versions.
 # Per-directory review assignment lives in .github/CODEOWNERS.
 updates:
-  - package-ecosystem: 'npm'
+  - package-ecosystem: 'bun'
     directory: '/'
     exclude-paths:
       - 'apps/citizen/**'
@@ -28,8 +32,10 @@ updates:
           - '@next/*'
       react:
         patterns:
-          - 'react*'
-          - '@types/react*'
+          - 'react'
+          - 'react-dom'
+          - '@types/react'
+          - '@types/react-dom'
       radix:
         patterns:
           - '@radix-ui/*'
@@ -40,7 +46,7 @@ updates:
         patterns:
           - '@supabase/*'
 
-  - package-ecosystem: 'npm'
+  - package-ecosystem: 'bun'
     directory: '/apps/citizen'
     schedule:
       interval: 'weekly'
@@ -63,8 +69,8 @@ updates:
           - '@react-native/*'
       react:
         patterns:
-          - 'react*'
-          - '@types/react*'
+          - 'react'
+          - '@types/react'
     # Expo's SDK matrix pins these, and `expo install --fix` is what writes
     # them from the installed SDK's bundledNativeModules.json. A bump here
     # moves the app off the set Expo tested, so the only version signal worth
