@@ -4,6 +4,6 @@
     "api": "json-server --watch db.json --port 8000 --host 0.0.0.0"
   },
   "devDependencies": {
-    "json-server": "^1.0.0-beta.0"
+    "json-server": "^1.0.0-beta.15"
   }
 }

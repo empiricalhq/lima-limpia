@@ -12,6 +12,8 @@ export const user = pgTable(
     image: text('image'),
     role: text('role').default('user').notNull(),
     banned: boolean('banned').default(false).notNull(),
+    banReason: text('banReason'),
+    banExpires: timestamp('banExpires', { withTimezone: true, mode: 'date' }),
     createdAt: timestamp('createdAt', { withTimezone: true, mode: 'date' }).defaultNow().notNull(),
     updatedAt: timestamp('updatedAt', { withTimezone: true, mode: 'date' })
       .defaultNow()
@@ -30,7 +32,9 @@ export const account = pgTable(
   'account',
   {
     id: text('id').primaryKey(),
-    issuer: text('issuer').notNull(),
+    // Dead since better-auth 1.7.3 identifies an account by (providerId, accountId).
+    // Nullable so one schema serves 1.7.2 and 1.7.5; drop it once nothing runs 1.7.2.
+    issuer: text('issuer'),
     accountId: text('accountId').notNull(),
     providerId: text('providerId').notNull(),
     userId: text('userId')
@@ -49,7 +53,7 @@ export const account = pgTable(
       .notNull()
       .$onUpdate(() => new Date()),
   },
-  (table) => [uniqueIndex('account_issuer_accountId_uidx').on(table.issuer, table.accountId)],
+  (table) => [uniqueIndex('account_providerId_accountId_uidx').on(table.providerId, table.accountId)],
 );
 
 export const session = pgTable(
@@ -69,6 +73,7 @@ export const session = pgTable(
       .notNull()
       .references(() => user.id, { onDelete: 'cascade' }),
     activeOrganizationId: text('activeOrganizationId').references(() => organization.id, { onDelete: 'set null' }),
+    impersonatedBy: text('impersonatedBy'),
   },
   (table) => [index('session_user_id_idx').on(table.userId), index('session_expires_at_idx').on(table.expiresAt)],
 );
@@ -122,4 +127,5 @@ export const invitation = pgTable('invitation', {
   role: memberRoleEnum('role').notNull(),
   status: text('status').notNull(),
   expiresAt: timestamp('expiresAt', { withTimezone: true, mode: 'date' }).notNull(),
+  createdAt: timestamp('createdAt', { withTimezone: true, mode: 'date' }).defaultNow().notNull(),
 });
