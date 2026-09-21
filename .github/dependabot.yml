@@ -1,20 +1,12 @@
 version: 2
 
-# The ecosystem is 'bun', not 'npm': only bun's updater writes bun.lock, and a
-# pull request that moves package.json alone fails `bun install --frozen-lockfile`.
+# The ecosystem is 'bun', not 'npm': only bun's updater writes bun.lock. It has
+# to run from the root, where the lockfile and every workspace manifest are in
+# scope -- an entry for a workspace directory moves package.json alone.
 # Bun has no security updates, so an alert still needs a bump by hand.
-#
-# apps/* and packages/* are bun workspaces sharing one lockfile, so the bun
-# entry for '/' already scans and updates every workspace manifest. A second
-# entry for a workspace directory does not add coverage, it duplicates it: each
-# apps/citizen bump used to arrive as two pull requests. Only apps/citizen gets
-# its own entry, because only it has a different owner for its versions.
-# Per-directory review assignment lives in .github/CODEOWNERS.
 updates:
   - package-ecosystem: 'bun'
     directory: '/'
-    exclude-paths:
-      - 'apps/citizen/**'
     schedule:
       interval: 'weekly'
       day: 'monday'
@@ -30,12 +22,6 @@ updates:
         patterns:
           - 'next*'
           - '@next/*'
-      react:
-        patterns:
-          - 'react'
-          - 'react-dom'
-          - '@types/react'
-          - '@types/react-dom'
       radix:
         patterns:
           - '@radix-ui/*'
@@ -45,40 +31,21 @@ updates:
       supabase:
         patterns:
           - '@supabase/*'
-
-  - package-ecosystem: 'bun'
-    directory: '/apps/citizen'
-    schedule:
-      interval: 'weekly'
-      day: 'monday'
-      time: '09:00'
-    open-pull-requests-limit: 10
-    assignees:
-      - 'totallynotdavid'
-    commit-message:
-      prefix: 'deps(citizen)'
-      include: 'scope'
-    groups:
       expo:
         patterns:
           - 'expo*'
           - '@expo/*'
-      react-native:
-        patterns:
-          - 'react-native*'
-          - '@react-native/*'
-      react:
-        patterns:
-          - 'react'
-          - '@types/react'
-    # Expo's SDK matrix pins these, and `expo install --fix` is what writes
-    # them from the installed SDK's bundledNativeModules.json. A bump here
-    # moves the app off the set Expo tested, so the only version signal worth
-    # acting on is the `expo` package itself, which stays out of this list.
+    # Expo's SDK matrix pins these and `expo install --fix` writes them from the
+    # installed SDK's bundledNativeModules.json. `expo` itself stays out, because
+    # the SDK bump is the signal that fans the rest out. One entry cannot hold a
+    # version for apps/citizen alone, so react waits for the matrix here too.
     ignore:
       - dependency-name: 'expo-*'
       - dependency-name: '@react-native-community/netinfo'
       - dependency-name: 'react'
+      - dependency-name: 'react-dom'
+      - dependency-name: '@types/react'
+      - dependency-name: '@types/react-dom'
       - dependency-name: 'react-native'
       - dependency-name: 'react-native-gesture-handler'
       - dependency-name: 'react-native-reanimated'
@@ -102,3 +69,4 @@ updates:
       - 'totallynotdavid'
     commit-message:
       prefix: 'deps(actions)'
+      include: 'scope'
