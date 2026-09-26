@@ -28,7 +28,8 @@ interface ActionResult {
 async function performSignInRequest(credentials: SignInSchema): Promise<{ sessionCookie: string }> {
   const signInResponse = await fetch(`${ENV.API_BASE_URL}/api/auth/sign-in/email`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    // Node's fetch sends `Sec-Fetch-Mode`, which makes better-auth reject the request without an Origin.
+    headers: { 'Content-Type': 'application/json', Origin: ENV.API_BASE_URL },
     body: JSON.stringify(credentials),
   });
 
@@ -88,10 +89,6 @@ async function setupOrganization(sessionCookie: string): Promise<string> {
   }
 
   // set the first organization as active
-  // TODO: the site should may be federated and allow logging from departments up in the chain:
-  // - global org could be "Ministerio del Ambiente"
-  // - first-level could be "Municipalidad de X"
-  // - etc.
   const [firstOrg] = organizations;
 
   const setActiveResponse = await fetch(`${ENV.API_BASE_URL}/api/auth/organization/set-active`, {
