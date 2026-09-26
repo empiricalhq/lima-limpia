@@ -8,7 +8,7 @@ import type { AuthEnv } from '../auth/types';
 import { CreateAdminIssueSchema } from '../issues/schemas';
 import { CreateRouteSchema } from '../routes/schemas';
 import { CreateTruckSchema } from '../trucks/schemas';
-import { CreateDriverSchema, CreateUserSchema } from './schemas';
+import { CreateDriverSchema, CreateUserSchema, UpdateUserSchema } from './schemas';
 import type { AdminService } from './service';
 
 const IdParamSchema = z.object({ id: CommonSchemas.id });
@@ -29,8 +29,13 @@ export function createAdminHandler(
   const admin = new Hono<AuthEnv>();
 
   admin.get('/drivers', requirePermission({ user: ['list'] }), async (c) => {
-    const drivers = await adminService.getDrivers(c.req.raw.headers);
+    const drivers = await adminService.getUsersByRole(getActiveOrganizationId(c), 'driver');
     return success(c, drivers);
+  });
+
+  admin.get('/supervisors', requirePermission({ user: ['list'] }), async (c) => {
+    const supervisors = await adminService.getUsersByRole(getActiveOrganizationId(c), 'supervisor');
+    return success(c, supervisors);
   });
 
   admin.post('/drivers', requirePermission({ user: ['create'] }), validateJson(CreateDriverSchema), async (c) => {
@@ -41,9 +46,22 @@ export function createAdminHandler(
 
   admin.post('/users', requirePermission({ user: ['create'] }), validateJson(CreateUserSchema), async (c) => {
     const userData = c.req.valid('json');
-    const newUser = await adminService.createUser(userData, getActiveOrganizationId(c));
+    const newUser = await adminService.createUser(c.req.raw.headers, userData, getActiveOrganizationId(c));
     return created(c, newUser);
   });
+
+  admin.patch(
+    '/users/:id',
+    requirePermission({ user: ['create'] }),
+    validateParam(IdParamSchema),
+    validateJson(UpdateUserSchema),
+    async (c) => {
+      const { id } = c.req.valid('param');
+      const userData = c.req.valid('json');
+      const updatedUser = await adminService.updateUser(c.req.raw.headers, id, userData, getActiveOrganizationId(c));
+      return success(c, updatedUser);
+    },
+  );
 
   admin.get('/trucks', requirePermission({ truck: ['read'] }), async (c) => {
     const trucks = await adminService.getTrucks();
