@@ -1,7 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useState, useTransition } from 'react';
+import { useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -12,7 +12,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -20,8 +19,13 @@ import { updateDriver } from '@/features/drivers/actions';
 import { type UpdateDriverSchema, updateDriverSchema } from '@/features/drivers/schemas';
 import type { User } from '@/lib/api-contract';
 
-export function EditDriverDialog({ driver, children }: { driver: User; children: React.ReactNode }) {
-  const [isOpen, setIsOpen] = useState(false);
+interface EditDriverDialogProps {
+  driver: User;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+export function EditDriverDialog({ driver, open, onOpenChange }: EditDriverDialogProps) {
   const [isPending, startTransition] = useTransition();
 
   const form = useForm<UpdateDriverSchema>({
@@ -42,15 +46,14 @@ export function EditDriverDialog({ driver, children }: { driver: User; children:
         toast.error(result.error);
       } else {
         toast.success('Chofer actualizado correctamente.');
-        setIsOpen(false);
-        form.reset();
+        onOpenChange(false);
+        form.reset({ id: data.id, name: data.name, email: data.email, password: '', confirmPassword: '' });
       }
     });
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild={true}>{children}</DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Editar Chofer</DialogTitle>
@@ -113,7 +116,7 @@ export function EditDriverDialog({ driver, children }: { driver: User; children:
               )}
             />
             <DialogFooter>
-              <Button className="cursor-pointer" type="submit" disabled={isPending}>
+              <Button type="submit" disabled={isPending}>
                 Guardar Cambios
               </Button>
             </DialogFooter>
