@@ -20,6 +20,19 @@ export const AppRoles = {
 
 export type AppRole = (typeof AppRoles)[keyof typeof AppRoles];
 
+/** Roles each role may create and edit. A supervisor can create users but must not be able to mint or edit admins. */
+const MANAGEABLE_ROLES: Record<AppRole, readonly AppRole[]> = {
+  [AppRoles.OWNER]: [AppRoles.ADMIN, AppRoles.SUPERVISOR, AppRoles.DRIVER],
+  [AppRoles.ADMIN]: [AppRoles.ADMIN, AppRoles.SUPERVISOR, AppRoles.DRIVER],
+  [AppRoles.SUPERVISOR]: [AppRoles.DRIVER],
+  [AppRoles.DRIVER]: [],
+  [AppRoles.CITIZEN]: [],
+};
+
+export function canManageRole(callerRoles: readonly AppRole[], targetRole: AppRole): boolean {
+  return callerRoles.some((role) => MANAGEABLE_ROLES[role]?.includes(targetRole));
+}
+
 export const appAc = createAccessControl(appAccessControlStatements);
 
 export const appPluginRoles: { [key in AppRole]: ReturnType<(typeof appAc)['newRole']> } = {
