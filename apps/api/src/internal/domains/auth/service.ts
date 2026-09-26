@@ -49,4 +49,10 @@ export class AuthService {
   get api() {
     return this.auth.api;
   }
+
+  /** Hash with better-auth's own hasher so the stored value verifies at sign-in. */
+  async hashPassword(password: string): Promise<string> {
+    const context = await this.auth.$context;
+    return context.password.hash(password);
+  }
 }
