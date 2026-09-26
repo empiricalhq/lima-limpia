@@ -36,6 +36,10 @@ export class TestClient {
     return this.request<T>('PUT', endpoint, body, headers);
   }
 
+  async patch<T = unknown>(endpoint: string, body: unknown, headers?: Record<string, string>): Promise<ApiResponse<T>> {
+    return this.request<T>('PATCH', endpoint, body, headers);
+  }
+
   async delete<T = unknown>(endpoint: string, headers?: Record<string, string>): Promise<ApiResponse<T>> {
     return this.request<T>('DELETE', endpoint, undefined, headers);
   }
