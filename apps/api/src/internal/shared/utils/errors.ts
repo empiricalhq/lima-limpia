@@ -24,6 +24,12 @@ export class NotFoundError extends AppError {
   }
 }
 
+export class ForbiddenError extends AppError {
+  constructor(message = 'Forbidden') {
+    super(message, HttpStatus.FORBIDDEN);
+  }
+}
+
 export class ConflictError extends AppError {
   constructor(message = 'Resource conflict') {
     super(message, HttpStatus.CONFLICT);
