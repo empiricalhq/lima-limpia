@@ -1,6 +1,7 @@
 'use client';
 
 import { MoreHorizontal } from 'lucide-react';
+import { useState } from 'react';
 import { EditSupervisorDialog } from '@/components/supervisors/edit-supervisor-dialog';
 import { Button } from '@/components/ui/button';
 import {
@@ -12,8 +13,10 @@ import {
 import type { User } from '@/lib/api-contract';
 
 export function SupervisorActions({ supervisor }: { supervisor: User }) {
+  const [isEditing, setIsEditing] = useState(false);
+
   return (
-    <EditSupervisorDialog supervisor={supervisor}>
+    <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild={true}>
           <Button variant="ghost" className="h-8 w-8 p-0">
@@ -22,9 +25,10 @@ export function SupervisorActions({ supervisor }: { supervisor: User }) {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Editar</DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => setIsEditing(true)}>Editar</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-    </EditSupervisorDialog>
+      <EditSupervisorDialog supervisor={supervisor} open={isEditing} onOpenChange={setIsEditing} />
+    </>
   );
 }

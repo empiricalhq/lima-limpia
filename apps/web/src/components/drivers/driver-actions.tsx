@@ -1,6 +1,7 @@
 'use client';
 
 import { MoreHorizontal } from 'lucide-react';
+import { useState } from 'react';
 import { EditDriverDialog } from '@/components/drivers/edit-driver-dialog';
 import { Button } from '@/components/ui/button';
 import {
@@ -12,8 +13,10 @@ import {
 import type { User } from '@/lib/api-contract';
 
 export function DriverActions({ driver }: { driver: User }) {
+  const [isEditing, setIsEditing] = useState(false);
+
   return (
-    <EditDriverDialog driver={driver}>
+    <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild={true}>
           <Button variant="ghost" className="h-8 w-8 p-0">
@@ -22,9 +25,10 @@ export function DriverActions({ driver }: { driver: User }) {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Editar</DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => setIsEditing(true)}>Editar</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-    </EditDriverDialog>
+      <EditDriverDialog driver={driver} open={isEditing} onOpenChange={setIsEditing} />
+    </>
   );
 }
