@@ -119,14 +119,10 @@ const admin = {
     post<User>('/api/admin/drivers', data, { ignoreSetCookie: true }),
   createUser: (data: { name: string; email: string; password: string; role: 'admin' | 'supervisor' | 'driver' }) =>
     post<User>('/api/admin/users', data, { ignoreSetCookie: true }),
-  updateDriver: (id: string, data: { name: string; email: string; password?: string }) =>
-    post<User>(`/api/admin/drivers/${id}`, data, { ignoreSetCookie: true }),
+  updateUser: (id: string, data: { name: string; email: string; password?: string }) =>
+    request<User>(`/api/admin/users/${id}`, { method: 'PATCH', body: JSON.stringify(data) }, { ignoreSetCookie: true }),
 
   getSupervisors: () => request<User[]>('/api/admin/supervisors', {}, { ignoreSetCookie: true, revalidate: 60 }),
-  createSupervisor: (data: { name: string; email: string; password: string }) =>
-    post<User>('/api/admin/supervisors', data, { ignoreSetCookie: true }),
-  updateSupervisor: (id: string, data: { name: string; email: string; password?: string }) =>
-    post<User>(`/api/admin/supervisors/${id}`, data, { ignoreSetCookie: true }),
 
   getTrucks: () => request<Truck[]>('/api/admin/trucks', {}, { ignoreSetCookie: true }),
   getRoutes: () => request<Route[]>('/api/admin/routes', {}, { ignoreSetCookie: true, revalidate: 60 }),
