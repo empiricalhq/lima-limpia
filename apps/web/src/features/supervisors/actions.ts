@@ -29,7 +29,7 @@ export async function createSupervisor(data: CreateSupervisorSchema): Promise<Ac
   try {
     await requireProtectedRole();
     const { name, email, password } = validatedFields.data;
-    await api.admin.createSupervisor({ name, email, password });
+    await api.admin.createUser({ name, email, password, role: 'supervisor' });
   } catch (error: unknown) {
     return { error: error instanceof Error ? error.message : 'Failed to create supervisor.' };
   }
@@ -47,7 +47,7 @@ export async function updateSupervisor(data: UpdateSupervisorSchema): Promise<Ac
   try {
     await requireProtectedRole();
     const { id, name, email, password } = validatedFields.data;
-    await api.admin.updateSupervisor(id, {
+    await api.admin.updateUser(id, {
       name,
       email,
       ...(password && { password }),

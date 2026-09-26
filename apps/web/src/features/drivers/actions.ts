@@ -44,7 +44,7 @@ export async function updateDriver(data: UpdateDriverSchema): Promise<ActionResu
     await requireProtectedRole();
 
     const { id, name, email, password } = validatedFields.data;
-    await api.admin.updateDriver(id, {
+    await api.admin.updateUser(id, {
       name,
       email,
       ...(password && { password }),
