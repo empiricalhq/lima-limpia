@@ -1,7 +1,8 @@
 import { APIError } from 'better-auth/api';
-import type { AppRole } from '@/internal/shared/auth/roles';
+import { type AppRole, canManageRole } from '@/internal/shared/auth/roles';
 import { BaseService } from '@/internal/shared/services/base-service';
-import { ConflictError, NotFoundError, ValidationError } from '@/internal/shared/utils/errors';
+import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from '@/internal/shared/utils/errors';
+import { HttpStatus } from '@/internal/shared/utils/http-status';
 import type { CreateAssignmentRequest, RouteAssignment } from '../assignments/models';
 import type { AssignmentRepository } from '../assignments/repository';
 import type { AuthService } from '../auth/service';
@@ -12,12 +13,14 @@ import type { RouteRepository } from '../routes/repository';
 import type { CreateTruckRequest, Truck, TruckWithDetails } from '../trucks/models';
 import type { TruckRepository } from '../trucks/repository';
 import type { UserWithRole } from '../users/models';
+import type { UserRepository } from '../users/repository';
 
 interface AdminServiceDependencies {
   truckRepo: TruckRepository;
   routeRepo: RouteRepository;
   assignmentRepo: AssignmentRepository;
   issueRepo: IssueRepository;
+  userRepo: UserRepository;
   authService: AuthService;
 }
 
@@ -26,39 +29,22 @@ export class AdminService extends BaseService {
   private readonly routeRepo: RouteRepository;
   private readonly assignmentRepo: AssignmentRepository;
   private readonly issueRepo: IssueRepository;
+  private readonly userRepo: UserRepository;
   private readonly authService: AuthService;
 
-  constructor({ truckRepo, routeRepo, assignmentRepo, issueRepo, authService }: AdminServiceDependencies) {
+  constructor({ truckRepo, routeRepo, assignmentRepo, issueRepo, userRepo, authService }: AdminServiceDependencies) {
     super();
     this.truckRepo = truckRepo;
     this.routeRepo = routeRepo;
     this.assignmentRepo = assignmentRepo;
     this.issueRepo = issueRepo;
+    this.userRepo = userRepo;
     this.authService = authService;
   }
 
-  async getDrivers(headers: Headers): Promise<UserWithRole[]> {
-    try {
-      const response = await this.authService.api.listUsers({
-        headers,
-        query: {
-          limit: 1000,
-          filterField: 'role',
-          filterOperator: 'eq',
-          filterValue: 'driver',
-        },
-      });
-
-      return response.users.map((user) => ({
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        createdAt: new Date(user.createdAt),
-        role: 'driver',
-      }));
-    } catch (error) {
-      this.handleAuthApiError(error);
-    }
+  /** Read from organization membership, the role the API authorizes on, not from the global `user.role`. */
+  async getUsersByRole(organizationId: string, role: 'driver' | 'supervisor'): Promise<UserWithRole[]> {
+    return this.userRepo.findOrganizationMembersByRole(organizationId, role);
   }
 
   async createDriver(
@@ -69,10 +55,45 @@ export class AdminService extends BaseService {
   }
 
   async createUser(
+    headers: Headers,
     data: { name: string; email: string; password: string; role: Exclude<AppRole, 'owner' | 'citizen'> },
     organizationId: string,
   ): Promise<UserWithRole> {
+    await this.assertCanManage(headers, data.role);
     return this.createOrganizationUser(data, organizationId);
+  }
+
+  async updateUser(
+    headers: Headers,
+    userId: string,
+    data: { name: string; email: string; password?: string },
+    organizationId: string,
+  ): Promise<UserWithRole> {
+    const target = await this.userRepo.findOrganizationMember(userId, organizationId);
+    if (!target) {
+      throw new NotFoundError('User not found');
+    }
+    await this.assertCanManage(headers, target.role);
+
+    const email = data.email.toLowerCase();
+    const passwordHash = data.password ? await this.authService.hashPassword(data.password) : undefined;
+    try {
+      await this.userRepo.updateProfile(userId, data.name, email, passwordHash);
+    } catch (error) {
+      this.handleDatabaseError(error);
+    }
+
+    return { ...target, name: data.name, email };
+  }
+
+  /** Organization roles decide who may create or edit whom; the route permission alone would let a supervisor mint admins. */
+  private async assertCanManage(headers: Headers, targetRole: AppRole): Promise<void> {
+    const membership = await this.authService.api.getActiveMemberRole({ headers });
+    const callerRoles = (Array.isArray(membership?.role) ? membership.role : [membership?.role]) as AppRole[];
+
+    if (!canManageRole(callerRoles, targetRole)) {
+      throw new ForbiddenError(`Your role cannot manage ${targetRole} users`);
+    }
   }
 
   /**
@@ -162,10 +183,12 @@ export class AdminService extends BaseService {
 
   private handleAuthApiError(error: unknown): never {
     if (error instanceof APIError) {
-      if (error.status === 409) {
+      // `status` is a name such as 'BAD_REQUEST'; the number is `statusCode`. better-auth reports a
+      // taken email as a 400, so the code, not the status, tells a conflict from bad input.
+      if (error.statusCode === HttpStatus.CONFLICT || error.body?.code?.startsWith('USER_ALREADY_EXISTS')) {
         throw new ConflictError(error.message);
       }
-      if (error.status === 400) {
+      if (error.statusCode === HttpStatus.BAD_REQUEST) {
         throw new ValidationError(error.message);
       }
     }

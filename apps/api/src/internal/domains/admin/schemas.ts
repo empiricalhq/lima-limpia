@@ -10,3 +10,9 @@ export const CreateDriverSchema = z.object({
 export const CreateUserSchema = CreateDriverSchema.extend({
   role: z.enum(['admin', 'supervisor', 'driver']),
 });
+
+export const UpdateUserSchema = z.object({
+  name: CommonSchemas.name.min(2),
+  email: z.email('Invalid email format'),
+  password: z.string().min(8, 'Password must be at least 8 characters long').optional(),
+});
