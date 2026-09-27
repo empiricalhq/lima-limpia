@@ -1,0 +1,169 @@
+import { afterAll, afterEach, beforeEach, describe, expect, test } from 'bun:test';
+import type { PoolClient } from 'pg';
+import { AssignmentRepository } from '@/internal/domains/assignments/repository';
+import { DriverService } from '@/internal/domains/driver/service';
+import { IssueRepository } from '@/internal/domains/issues/repository';
+import { RouteRepository } from '@/internal/domains/routes/repository';
+import { loadConfig } from '@/internal/shared/config/config';
+import { Database } from '@/internal/shared/database/database';
+import { Database as TestDatabase } from './helpers/database';
+
+/**
+ * Drives `DriverService.updateLocation` in-process against the real test database. The HTTP suite
+ * can neither make one statement of the transaction fail nor see how the service uses its client,
+ * and both are what this file checks.
+ */
+
+/**
+ * Runs every query on the real pool and counts the ones issued while the same client was still
+ * running another. pg@8 queues them silently; pg@9 removes that.
+ */
+class OverlapCountingDatabase extends Database {
+  overlappingQueries = 0;
+
+  override async getClient(): Promise<PoolClient> {
+    const client = await super.getClient();
+    const query = client.query.bind(client) as (...args: unknown[]) => Promise<unknown>;
+    let inFlight = 0;
+    client.query = ((...args: unknown[]) => {
+      // The pool's own callback-style calls return no promise and are not the service's.
+      if (typeof args.at(-1) === 'function') {
+        return query(...args);
+      }
+      if (inFlight > 0) {
+        this.overlappingQueries += 1;
+      }
+      inFlight += 1;
+      const pending = query(...args);
+      const settled = () => {
+        inFlight -= 1;
+      };
+      pending.then(settled, settled);
+      return pending;
+    }) as PoolClient['query'];
+    return client;
+  }
+}
+
+const db = new OverlapCountingDatabase(loadConfig().database);
+const testDb = new TestDatabase();
+const driverService = new DriverService(
+  new AssignmentRepository(db),
+  new RouteRepository(db),
+  new IssueRepository(db),
+  db,
+);
+
+const DRIVER_ID = 'driver-location-user';
+const TRUCK_ID = 'driver-location-truck';
+const ASSIGNMENT_ID = 'driver-location-assignment';
+const PREVIOUS = { lat: -12.0, lng: -77.0 };
+const UPDATE = { lat: -12.0464, lng: -77.0428, speed: 30, heading: 90 };
+
+async function failInserts(table: string, message: string): Promise<void> {
+  await db.query(`
+    CREATE FUNCTION reject_${table}() RETURNS trigger LANGUAGE plpgsql AS $$
+    BEGIN RAISE EXCEPTION '${message}'; END $$
+  `);
+  await db.query(
+    `CREATE TRIGGER reject_${table} BEFORE INSERT ON ${table} FOR EACH ROW EXECUTE FUNCTION reject_${table}()`,
+  );
+}
+
+async function dropRejection(table: string): Promise<void> {
+  await db.query(`DROP TRIGGER IF EXISTS reject_${table} ON ${table}`);
+  await db.query(`DROP FUNCTION IF EXISTS reject_${table}()`);
+}
+
+async function updateLocationError(): Promise<Error> {
+  try {
+    await driverService.updateLocation(DRIVER_ID, UPDATE);
+  } catch (error) {
+    return error as Error;
+  }
+  throw new Error('updateLocation was expected to fail.');
+}
+
+async function currentLocation() {
+  const { rows } = await db.query<{ lat: number; lng: number; speed: number | null }>(
+    'SELECT lat, lng, speed FROM truck_current_location WHERE truck_id = $1',
+    [TRUCK_ID],
+  );
+  return rows;
+}
+
+async function historyCount(): Promise<number> {
+  const { rows } = await db.query('SELECT id FROM truck_location_history WHERE truck_id = $1', [TRUCK_ID]);
+  return rows.length;
+}
+
+beforeEach(async () => {
+  db.overlappingQueries = 0;
+  await testDb.clean();
+  await db.query(
+    `INSERT INTO "user" (id, name, email, role) VALUES ($1, 'Driver', 'driver-location@test.com', 'user')`,
+    [DRIVER_ID],
+  );
+  await db.query(`INSERT INTO truck (id, name, license_plate) VALUES ($1, 'Truck', 'LOC-001')`, [TRUCK_ID]);
+  await db.query(
+    `INSERT INTO route (id, name, start_lat, start_lng, estimated_duration_minutes, created_by)
+     VALUES ('driver-location-route', 'Route', 0, 0, 60, $1)`,
+    [DRIVER_ID],
+  );
+  await db.query(
+    `INSERT INTO route_assignment
+       (id, route_id, truck_id, driver_id, assigned_date, scheduled_start_time, scheduled_end_time, status, assigned_by)
+     VALUES ($1, 'driver-location-route', $2, $3, CURRENT_DATE, NOW(), NOW() + INTERVAL '1 hour', 'active', $3)`,
+    [ASSIGNMENT_ID, TRUCK_ID, DRIVER_ID],
+  );
+  await db.query(
+    'INSERT INTO truck_current_location (truck_id, route_assignment_id, lat, lng) VALUES ($1, $2, $3, $4)',
+    [TRUCK_ID, ASSIGNMENT_ID, PREVIOUS.lat, PREVIOUS.lng],
+  );
+});
+
+afterEach(async () => {
+  await dropRejection('truck_location_history');
+  await dropRejection('truck_current_location');
+});
+
+afterAll(async () => {
+  await db.close();
+  await testDb.close();
+});
+
+describe('DriverService.updateLocation', () => {
+  test('writes the current location and one history row', async () => {
+    await driverService.updateLocation(DRIVER_ID, UPDATE);
+
+    expect(await currentLocation()).toEqual([{ lat: UPDATE.lat, lng: UPDATE.lng, speed: UPDATE.speed }]);
+    expect(await historyCount()).toBe(1);
+  });
+
+  test('never queries a pg client that is still running a query', async () => {
+    await driverService.updateLocation(DRIVER_ID, UPDATE);
+
+    expect(db.overlappingQueries).toBe(0);
+  });
+
+  test('rolls the current location back and surfaces the history error when the history insert fails', async () => {
+    await failInserts('truck_location_history', 'history insert rejected');
+
+    const error = await updateLocationError();
+
+    expect(error.message).toContain('history insert rejected');
+    expect(await currentLocation()).toEqual([{ lat: PREVIOUS.lat, lng: PREVIOUS.lng, speed: null }]);
+    expect(await historyCount()).toBe(0);
+  });
+
+  test('surfaces the current-location error, not an aborted transaction, when that write fails first', async () => {
+    await failInserts('truck_current_location', 'current location rejected');
+
+    const error = await updateLocationError();
+
+    expect(error.message).toContain('current location rejected');
+    expect(error.message).not.toContain('current transaction is aborted');
+    expect(await currentLocation()).toEqual([{ lat: PREVIOUS.lat, lng: PREVIOUS.lng, speed: null }]);
+    expect(await historyCount()).toBe(0);
+  });
+});
