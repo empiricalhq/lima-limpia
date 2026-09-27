@@ -68,3 +68,7 @@ jobs:
         run: bun run db:migrate
 
       - run: bun run test
+
+      - name: run database package tests
+        working-directory: packages/database
+        run: bun run test
