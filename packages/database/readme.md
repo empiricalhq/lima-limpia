@@ -29,8 +29,8 @@ The schema tools need `DATABASE_URL`. The setup and seed scripts also need
 `BETTER_AUTH_SECRET`. `BETTER_AUTH_URL` is optional and defaults to
 `http://localhost:4000`.
 
-Copy [`../../.env.example`](../../.env.example) to `.env` and fill in the
-values before running a command.
+Copy [`../../.env.example`](../../.env.example) to `.env` and fill in the values
+before running a command.
 
 ## Commands
 
@@ -49,8 +49,8 @@ Create the first organization owner with the interactive setup script:
 bun --filter @lima-garbage/database setup:admin
 ```
 
-The script prints the values needed by the seed script. Add them to `.env`, then
-run:
+The seed script needs the organization this creates, and there is nothing to
+copy into `.env`. Then run:
 
 ```sh
 bun --filter @lima-garbage/database db:seed
@@ -58,6 +58,15 @@ bun --filter @lima-garbage/database db:seed
 
 The seed script is for development data. It is safe to run more than once for
 the records it owns, but it must not run against production data.
+
+## Testing
+
+```sh
+bun --filter @lima-garbage/database test
+```
+
+The test files share one database and truncate its tables in `beforeEach`, so
+they must run one at a time, not with `bun test --parallel`.
 
 ## Migrations
 
@@ -73,8 +82,8 @@ flowchart LR
 ```
 
 Keep each migration SQL file with its matching entry in
-[`migrations/meta/_journal.json`](migrations/meta/_journal.json). Do not apply
-a migration until the complete history can be created on a fresh database.
+[`migrations/meta/_journal.json`](migrations/meta/_journal.json). Do not apply a
+migration until the complete history can be created on a fresh database.
 
 `db:push` changes a database without recording a migration and is for local
 development. `db:migrate` applies the committed migration files.
