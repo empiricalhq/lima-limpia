@@ -43,6 +43,13 @@
       "when": 1789943075588,
       "tag": "0005_brown_spacker_dave",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1790543005758,
+      "tag": "0006_ancient_thing",
+      "breakpoints": true
     }
   ]
 }
