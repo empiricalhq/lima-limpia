@@ -40,24 +40,27 @@ the field names shown in the database and API contracts.
 
 ### Authentication
 
-Better Auth handles all requests under `/api/auth`.
+Better Auth registers many more routes than these under `/api/auth`, but only
+the paths below are mounted (`apps/api/src/internal/domains/auth/handler.ts`).
+Every other Better Auth path, including `organization/get-full-organization`,
+`organization/get-active-member`, and `organization/update-member-role`,
+returns 404 before Better Auth's own handler runs — see
+[ARCHITECTURE.md](../../ARCHITECTURE.md) for why. Add a new call only by
+adding its route to `ALLOWED_ROUTES` and a passing test in
+`apps/api/tests/authorization.test.ts` asserting it is mounted.
 
 | Method | Path | Description |
 | --- | --- | --- |
+| `GET` | `/api/auth/get-session` | Return the current user and session. |
 | `POST` | `/api/auth/sign-in/email` | Sign in with `email` and `password`. |
 | `POST` | `/api/auth/sign-up/email` | Create a user with `name`, `email`, and `password`. |
 | `POST` | `/api/auth/sign-out` | End the current session. |
-| `GET` | `/api/auth/get-session` | Return the current user and session. |
 | `POST` | `/api/auth/request-password-reset` | Request a reset email. |
 | `POST` | `/api/auth/reset-password` | Set a new password with a reset token. |
+| `GET` | `/api/auth/reset-password/:token` | Validate a reset link and redirect; the link the reset email sends. |
+| `GET` | `/api/auth/organization/get-active-member-role` | Return the current member role. |
 | `GET` | `/api/auth/organization/list` | List organizations for the current user. |
 | `POST` | `/api/auth/organization/set-active` | Set the active organization with `organizationId`. |
-| `GET` | `/api/auth/organization/get-full-organization` | Return the active organization and its members. |
-| `GET` | `/api/auth/organization/get-active-member` | Return the current organization member. |
-| `GET` | `/api/auth/organization/get-active-member-role` | Return the current member role. |
-
-Better Auth exposes more routes than the application uses directly. Check its
-installed API types before adding a new call.
 
 ### Staff
 

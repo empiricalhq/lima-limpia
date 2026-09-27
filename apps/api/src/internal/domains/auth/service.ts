@@ -10,13 +10,14 @@ interface AuthServiceDependencies {
   db: DatabaseInterface;
   accessControl: typeof appAc;
   roles: { [key in AppRole]: ReturnType<(typeof appAc)['newRole']> };
+  adminPluginRoles: { [key in AppRole]: ReturnType<(typeof appAc)['newRole']> };
   emailService: EmailService;
 }
 
 export class AuthService {
   readonly auth;
 
-  constructor({ config, db, accessControl, roles, emailService }: AuthServiceDependencies) {
+  constructor({ config, db, accessControl, roles, adminPluginRoles, emailService }: AuthServiceDependencies) {
     this.auth = betterAuth({
       database: db.getPool(),
       secret: config.auth.secret,
@@ -32,10 +33,20 @@ export class AuthService {
         organization({
           ac: accessControl,
           roles,
+          // handler.ts's route allowlist is what actually keeps /organization/create
+          // unreachable; this is defense in depth for the same reason (see ARCHITECTURE.md).
+          // Only setup:admin (server-side, no session) and AdminService.createOrganizationUser
+          // (addMember, not this endpoint) may create organizations or members.
+          allowUserToCreateOrganization: false,
         }),
         admin({
           ac: accessControl,
-          roles,
+          // Not `roles`: AdminService never calls this plugin's own endpoints over HTTP, and
+          // `roles`'s `user`/`session` grants exist only for requirePermission's route-level
+          // checks. handler.ts's route allowlist is what actually keeps set-role, create-user,
+          // ban-user, impersonate-user, remove-user, and set-user-password unreachable; this is
+          // defense in depth for the same reason (see ARCHITECTURE.md).
+          roles: adminPluginRoles,
           defaultRole: 'citizen',
         }),
       ],

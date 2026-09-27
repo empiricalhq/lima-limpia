@@ -1,7 +1,7 @@
 import { createMiddleware } from 'hono/factory';
 import type { AuthService } from '@/internal/domains/auth/service';
 import type { AuthEnv } from '@/internal/domains/auth/types';
-import { type AppRole, appPluginRoles, type PermissionRequest } from '@/internal/shared/auth/roles';
+import { type AppRole, appPluginRoles, type PermissionRequest, toRoleList } from '@/internal/shared/auth/roles';
 import { forbidden, unauthorized } from '@/internal/shared/utils/response';
 
 interface OrganizationRolesResolution {
@@ -26,10 +26,7 @@ async function resolveActiveOrganizationRoles(
     return { ok: false, message: 'No organization membership found' };
   }
 
-  // Better Auth may return one role or a list of roles.
-  const roles = (
-    Array.isArray(memberRoleResponse.role) ? memberRoleResponse.role : [memberRoleResponse.role]
-  ) as AppRole[];
+  const roles = toRoleList(memberRoleResponse.role);
 
   return { ok: true, roles };
 }

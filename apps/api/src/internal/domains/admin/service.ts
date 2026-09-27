@@ -1,5 +1,5 @@
 import { APIError } from 'better-auth/api';
-import { type AppRole, canManageRole } from '@/internal/shared/auth/roles';
+import { type AppRole, canManageRole, toRoleList } from '@/internal/shared/auth/roles';
 import { BaseService } from '@/internal/shared/services/base-service';
 import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from '@/internal/shared/utils/errors';
 import { HttpStatus } from '@/internal/shared/utils/http-status';
@@ -89,7 +89,7 @@ export class AdminService extends BaseService {
   /** Organization roles decide who may create or edit whom; the route permission alone would let a supervisor mint admins. */
   private async assertCanManage(headers: Headers, targetRole: AppRole): Promise<void> {
     const membership = await this.authService.api.getActiveMemberRole({ headers });
-    const callerRoles = (Array.isArray(membership?.role) ? membership.role : [membership?.role]) as AppRole[];
+    const callerRoles = toRoleList(membership?.role);
 
     if (!canManageRole(callerRoles, targetRole)) {
       throw new ForbiddenError(`Your role cannot manage ${targetRole} users`);

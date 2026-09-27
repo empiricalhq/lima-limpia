@@ -33,6 +33,19 @@ export function canManageRole(callerRoles: readonly AppRole[], targetRole: AppRo
   return callerRoles.some((role) => MANAGEABLE_ROLES[role]?.includes(targetRole));
 }
 
+/**
+ * Better Auth's `getActiveMemberRole` returns a member's role as a single string or, with
+ * multi-role support, a list. A multi-role membership is stored as one comma-joined string
+ * (`parseRoles` in the organization plugin serializes `["driver", "admin"]` as `"driver,admin"`),
+ * so a single string must still be split before matching against `allowedRoles`/`canManageRole`.
+ */
+export function toRoleList(role: string | string[] | undefined | null): AppRole[] {
+  if (!role) {
+    return [];
+  }
+  return (Array.isArray(role) ? role : role.split(',').filter(Boolean)) as AppRole[];
+}
+
 export const appAc = createAccessControl(appAccessControlStatements);
 
 export const appPluginRoles: { [key in AppRole]: ReturnType<(typeof appAc)['newRole']> } = {
@@ -85,3 +98,21 @@ export const appPluginRoles: { [key in AppRole]: ReturnType<(typeof appAc)['newR
 
 /** A resource/action permission check, e.g. `{ truck: ['create'] }`. Every role above declares all resource keys, so any role's `authorize` signature is representative. */
 export type PermissionRequest = Parameters<(typeof appPluginRoles)['owner']['authorize']>[0];
+
+/**
+ * Roles for the `admin` plugin only, not `organization` or `requirePermission`. The `user`/
+ * `session` grants in `appPluginRoles` exist so `requirePermission({ user: ['create'] })` and
+ * similar checks in our own admin routes work; they are not meant to authorize the admin plugin's
+ * own mounted endpoints (`/api/auth/admin/set-role`, `ban-user`, `impersonate-user`, `remove-user`,
+ * `set-user-password`, ...). Those endpoints apply the grant globally, with no equivalent to
+ * `canManageRole`'s hierarchy, so a supervisor holding `user: ['set-role']` for route-level checks
+ * could otherwise call `/api/auth/admin/set-role` directly and promote themselves to admin.
+ * AdminService never calls these endpoints over HTTP, so every role gets no permissions here.
+ */
+export const disabledAdminPluginRoles: { [key in AppRole]: ReturnType<(typeof appAc)['newRole']> } = {
+  [AppRoles.OWNER]: appAc.newRole({}),
+  [AppRoles.ADMIN]: appAc.newRole({}),
+  [AppRoles.SUPERVISOR]: appAc.newRole({}),
+  [AppRoles.DRIVER]: appAc.newRole({}),
+  [AppRoles.CITIZEN]: appAc.newRole({}),
+};

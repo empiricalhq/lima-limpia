@@ -46,12 +46,17 @@ export class Auth {
 
     let member: Member | null = null;
     if (sessionRes.data.session?.activeOrganizationId) {
-      const orgRes = await this.client.get<{
-        members: Member[];
-      }>('/auth/organization/get-full-organization', { Cookie: cookie });
+      const roleRes = await this.client.get<{ role: string | null }>('/auth/organization/get-active-member-role', {
+        Cookie: cookie,
+      });
 
-      if (orgRes.status === HTTP_STATUS.OK) {
-        member = orgRes.data.members.find((m) => m.userId === sessionRes.data.user.id) || null;
+      if (roleRes.status === HTTP_STATUS.OK && roleRes.data.role) {
+        member = {
+          id: '',
+          userId: sessionRes.data.user.id,
+          organizationId: sessionRes.data.session.activeOrganizationId,
+          role: roleRes.data.role,
+        };
       }
     }
 
