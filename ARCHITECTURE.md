@@ -70,7 +70,7 @@ There are two role concepts:
 Better Auth's `organization` and `admin` plugins mount their own endpoints under
 `/api/auth/*`, each with its own permission check independent of this app's
 `/api/admin/*` routes and `canManageRole`. Both plugins share this app's
-access-control statements (`apps/api/src/internal/shared/auth/roles.ts`), which
+access-control statements (`packages/database/src/auth/roles.ts`), which
 also back `requirePermission` for the app's own admin routes — so a statement
 added for route-level gating (e.g. `user: ['create']`, needed so a supervisor
 can call `POST /api/admin/users`) also, unless guarded, authorizes the plugin's
@@ -123,19 +123,28 @@ APIs — see below):
   `organization` plugin.
 
 `AdminService.createOrganizationUser` (called from `createUser` and
-`createDriver` in `apps/api/src/internal/domains/admin/service.ts`) is the only
-*request*-reachable writer of `member.role`, and the only request-reachable
-writer of `user.role` to anything other than the default. It calls two Better
-Auth server APIs
-directly (`this.authService.api.*`, not `fetch`), bypassing the HTTP handler
-(and its allowlist) entirely, with no session headers, so both run as Better
-Auth's own "system action": `addMember` (the `organization` plugin) writes
-`member.role` and has no HTTP path at all — Better Auth's SDK never registers
-it on the router; `createUser` (the `admin` plugin) writes `user.role` and
-does have an HTTP path (`/api/auth/admin/create-user`), closed above by the
-handler's allowlist, so no caller can reach it with their own session.
-`createOrganizationUser` calls both in the same request, so the two fields stay
-consistent. `canManageRole` in `apps/api/src/internal/shared/auth/roles.ts`
+`createDriver` in `apps/api/src/internal/domains/admin/service.ts`, through
+the shared `createStaffUser`/`ensureStaffUser` in `@lima-garbage/database`) is
+the only *request*-reachable writer of `member.role`, and the only
+request-reachable writer of `user.role` to anything other than the default.
+`user.role` comes from Better Auth's own `createUser` (the `admin` plugin),
+called directly (`this.authService.api.createUser`, not `fetch`), bypassing
+the HTTP handler (and its allowlist) entirely, with no session headers, so it
+runs as Better Auth's own "system action"; the endpoint does have an HTTP path
+(`/api/auth/admin/create-user`), closed above by the handler's allowlist, so
+no caller can reach it with their own session. `member.role` is then written
+directly — a parameterized `INSERT INTO member` (`insertMember` in
+`packages/database/src/auth/create-staff-user.ts`), not Better Auth's
+`addMember` — because `ensureStaffUser`'s repair path must write a repaired
+`member.role` and a repaired `user.role` together or not at all, and
+`addMember` runs on Better Auth's own connection, which cannot join a
+transaction this package holds open on the shared `pg.Pool`
+(`withTransaction` in `packages/database/src/auth/transaction.ts`). A unique
+index on `member (organizationId, userId)` keeps that insert from creating a
+second membership for the same user in the same organization. A failed
+member write still deletes the user Better Auth just created, so
+`createStaffUser` never leaves one behind without a membership.
+`canManageRole` in `packages/database/src/auth/roles.ts`
 limits which role an actor may assign this way: an owner or admin may create an
 admin, supervisor, or driver; a supervisor may only create a driver.
 `updateUser` cannot change either role — `UpdateUserSchema` has no `role` field,
@@ -153,18 +162,28 @@ this write does not interact with `member.role` or staff access at all — it on
 affects what `user.role` (not read for staff checks) holds for that account.
 
 `packages/database/scripts/create-admin.ts` (`setup:admin`) is the one other
-writer of `member.role`: a separate Better Auth instance with no `admin`
-plugin and the `organization` plugin at its default `allowUserToCreateOrganization`.
-It calls `auth.api.createOrganization` with no session and the new user's `id`
-as `body.userId`, which Better Auth treats as a system action (bypassing
-`allowUserToCreateOrganization` entirely) and inserts the caller's own
-membership with `role: creatorRole`, `'owner'` by default and unconfigured
-here. This is the bootstrap write of `member.role = 'owner'` for the
-organization's first member — every later `member.role` write for every other
+writer of `member.role`: it uses the same shared `createAppAuth` instance as
+the API and the seed script (`packages/database/src/auth/create-auth.ts`),
+calling `createUser` for the owner's `user.role = 'owner'`, then writing the
+organization and its owner membership itself — a parameterized `INSERT INTO
+organization` followed by `insertMember` with `role: 'owner'`, in one
+`withTransaction` on the shared pool — instead of Better Auth's
+`createOrganization`, for the same reason `createOrganizationUser` above does
+not use `addMember`: the organization row and its owner membership must land
+together or not at all, and Better Auth's own connection cannot join that
+transaction. This is the bootstrap write of `member.role = 'owner'` for the
+organization's first member — every later `member.role` write for a real
 member goes through `createOrganizationUser` above. `setup:admin` only runs
 once, guarded by `checkExistingOrganization`, and is a local script invoked
 directly (`bun run scripts/create-admin.ts`), not reachable over HTTP, so it
 does not reintroduce the escalation above.
+
+`packages/database/scripts/seed.ts` (`db:seed`) is a third writer, but a
+dev-only one: it calls `ensureStaffUser`, the same shared step
+`create-admin.ts` uses for `insertMember`, to add its fixture staff users to
+the organization `setup:admin` bootstrapped. It is a local script, not
+reachable over HTTP, and its fixture data (see `readme.md`) is not meant for
+production use.
 
 Citizens are authenticated users without an active organization. The citizen
 middleware rejects a session that has an active organization. Staff middleware
