@@ -1,5 +1,5 @@
+import { type AppRole, canManageRole, createStaffUser, toRoleList } from '@lima-garbage/database';
 import { APIError } from 'better-auth/api';
-import { type AppRole, canManageRole, toRoleList } from '@/internal/shared/auth/roles';
 import { BaseService } from '@/internal/shared/services/base-service';
 import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from '@/internal/shared/utils/errors';
 import { HttpStatus } from '@/internal/shared/utils/http-status';
@@ -97,38 +97,30 @@ export class AdminService extends BaseService {
   }
 
   /**
-   * Create a better-auth user and add them to the organization with the given role. Both steps
-   * are required: better-auth's global user role alone does not grant access to org-scoped
-   * routes, which resolve roles from organization membership (see `resolveActiveOrganizationRoles`
-   * in shared/middleware/auth.ts). A user created without membership can never sign in past those
-   * checks.
+   * Create a better-auth user and add them to the organization with the given role, through the
+   * shared `createStaffUser` step (see `@lima-garbage/database`): better-auth's global user role
+   * alone does not grant access to org-scoped routes, which resolve roles from organization
+   * membership (see `resolveActiveOrganizationRoles` in shared/middleware/auth.ts). A user
+   * created without membership can never sign in past those checks, so a failed membership write
+   * deletes the user rather than leaving one behind.
+   *
+   * `createStaffUser` raises a better-auth `APIError` from `createUser` (a taken email) or a raw
+   * pg error from the membership insert (a duplicate membership, a deleted organization), since
+   * that insert runs as parameterized SQL rather than through better-auth's `addMember`. Route
+   * each to the handler that knows its shape, or the pg error falls through as an unmapped 500.
    */
   private async createOrganizationUser(
-    data: { name: string; email: string; password: string; role: AppRole },
+    data: { name: string; email: string; password: string; role: Exclude<AppRole, 'citizen'> },
     organizationId: string,
   ): Promise<UserWithRole> {
-    let userId: string;
-
     try {
-      const result = await this.authService.api.createUser({
-        body: { name: data.name, email: data.email, password: data.password, role: data.role },
-      });
-      userId = result.user.id;
+      return await createStaffUser(this.authService.auth, this.authService.pool, { ...data, organizationId });
     } catch (error) {
-      this.handleAuthApiError(error);
+      if (error instanceof APIError) {
+        this.handleAuthApiError(error);
+      }
+      this.handleDatabaseError(error);
     }
-
-    try {
-      await this.authService.api.addMember({
-        body: { userId, role: data.role, organizationId },
-      });
-    } catch (error) {
-      // biome-ignore lint/suspicious/noEmptyBlockStatements: cleanup is best effort; the membership error is what the caller should see.
-      await this.authService.api.removeUser({ body: { userId } }).catch(() => {});
-      this.handleAuthApiError(error);
-    }
-
-    return { id: userId, name: data.name, email: data.email, createdAt: new Date(), role: data.role };
   }
 
   async getTrucks(): Promise<TruckWithDetails[]> {

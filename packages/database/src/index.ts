@@ -1,3 +1,4 @@
+export * from './auth/index.ts';
 export * from './schema/index.ts';
 
 export type User = typeof import('./schema').user.$inferSelect;

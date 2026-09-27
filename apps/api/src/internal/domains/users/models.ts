@@ -1,4 +1,4 @@
-import type { AppRole } from '@/internal/shared/auth/roles';
+import type { AppRole } from '@lima-garbage/database';
 
 export type MemberRole = AppRole;
 

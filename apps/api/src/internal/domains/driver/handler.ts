@@ -1,6 +1,6 @@
+import type { AppRole } from '@lima-garbage/database';
 import { Hono, type MiddlewareHandler } from 'hono';
 import { z } from 'zod';
-import type { AppRole } from '@/internal/shared/auth/roles';
 import { created, success } from '@/internal/shared/utils/response';
 import { CommonSchemas, validateJson, validateParam } from '@/internal/shared/utils/validation';
 import type { AuthEnv } from '../auth/types';

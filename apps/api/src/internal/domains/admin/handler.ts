@@ -1,6 +1,6 @@
+import type { PermissionRequest } from '@lima-garbage/database';
 import { type Context, Hono, type MiddlewareHandler } from 'hono';
 import { z } from 'zod';
-import type { PermissionRequest } from '@/internal/shared/auth/roles';
 import { created, noContent, success } from '@/internal/shared/utils/response';
 import { CommonSchemas, validateJson, validateParam } from '@/internal/shared/utils/validation';
 import { CreateAssignmentSchema } from '../assignments/schemas';
