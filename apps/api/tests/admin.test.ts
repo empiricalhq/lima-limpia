@@ -278,6 +278,32 @@ describe('Admin API', () => {
       expect(duplicate.status).toBe(HTTP_STATUS.CONFLICT);
     });
 
+    test('leaves no orphan user when adding them to the organization fails', async () => {
+      const admin = baseTest.ctx.auth.getHeaders('admin');
+
+      // A real constraint rejects the specific insert into `member` this request needs (no
+      // existing test member has `role = 'supervisor'`), a real, unmocked way to make the
+      // membership half of user creation fail.
+      await baseTest.ctx.db.query(
+        `ALTER TABLE member ADD CONSTRAINT reject_supervisor_test CHECK (role <> 'supervisor')`,
+      );
+
+      try {
+        const email = `orphan-check-${Date.now()}@test.com`;
+        const response = await baseTest.ctx.client.post(
+          '/admin/users',
+          { name: 'Should Not Persist', email, password: 'created-password-123', role: 'supervisor' },
+          admin,
+        );
+
+        expect(response.status).not.toBe(HTTP_STATUS.CREATED);
+        const [orphan] = await baseTest.ctx.db.query(`SELECT id FROM "user" WHERE email = $1`, [email]);
+        expect(orphan).toBeUndefined();
+      } finally {
+        await baseTest.ctx.db.query('ALTER TABLE member DROP CONSTRAINT reject_supervisor_test');
+      }
+    });
+
     test('revokes every session of a user whose password changes', async () => {
       const email = `revoke-${Date.now()}@test.com`;
       const admin = baseTest.ctx.auth.getHeaders('admin');
