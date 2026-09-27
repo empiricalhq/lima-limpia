@@ -1,10 +1,11 @@
-import { getCurrentUser } from '@/features/auth/lib';
+import { getUserRoles } from '@/features/auth/lib';
+import { hasAnyRole, SETTINGS_ROLES } from '@/features/auth/roles';
 import { AddUserDialog } from './add-user-dialog';
 
 export async function AddUserButton() {
-  const user = await getCurrentUser();
+  const roles = await getUserRoles();
 
-  if (user?.role !== 'admin' && user?.role !== 'owner') {
+  if (!hasAnyRole(roles, SETTINGS_ROLES)) {
     return null;
   }
 

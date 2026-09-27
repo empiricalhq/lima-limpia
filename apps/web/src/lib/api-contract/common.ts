@@ -32,3 +32,9 @@ export const sessionSchema = z.object({
 });
 
 export type Session = z.infer<typeof sessionSchema>;
+
+export const memberRoleSchema = z.object({
+  role: z.union([z.string(), z.array(z.string())]),
+});
+
+export type MemberRole = z.infer<typeof memberRoleSchema>;

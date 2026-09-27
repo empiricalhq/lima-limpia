@@ -69,15 +69,13 @@ function UserInfo({ user }: { user: User }) {
 
 interface DashboardSidebarProps {
   user: User;
-  memberRole: string | null;
+  memberRoles: string[];
 }
 
-export function DashboardSidebar({ user, memberRole }: DashboardSidebarProps) {
+export function DashboardSidebar({ user, memberRoles }: DashboardSidebarProps) {
   const pathname = usePathname();
   const allNavItems = [...navigation, ...adminNavigation];
-  const navItems = allNavItems.filter(
-    (item) => !item.roles || (memberRole && item.roles.includes(memberRole as 'admin' | 'owner')),
-  );
+  const navItems = allNavItems.filter((item) => !item.roles || item.roles.some((role) => memberRoles.includes(role)));
 
   const sidebarContent = (
     <div className="flex h-full flex-col">
