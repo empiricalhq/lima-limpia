@@ -1,9 +1,8 @@
 import { intro, log, outro, spinner } from '@clack/prompts';
 import { createId } from '@paralleldrive/cuid2';
-import { betterAuth } from 'better-auth';
-import { admin } from 'better-auth/plugins';
 import { Pool, type PoolClient } from 'pg';
 import color from 'picocolors';
+import { type AppRole, createAppAuth, ensureStaffUser } from '../src/auth/index.ts';
 import { mustEnv, optionalEnv } from './env.js';
 
 const MILLISECONDS_PER_MINUTE = 60_000;
@@ -21,51 +20,19 @@ interface AssignmentSeed {
 
 const DATABASE_URL = mustEnv('DATABASE_URL');
 const AUTH_SECRET = mustEnv('BETTER_AUTH_SECRET');
-const ADMIN_EMAIL = mustEnv('SYSTEM_ADMIN_EMAIL');
-const ADMIN_PASS = mustEnv('SYSTEM_ADMIN_PASSWORD');
 
-const db = new Pool({ connectionString: DATABASE_URL });
-const auth = betterAuth({
-  database: db,
+export const db = new Pool({ connectionString: DATABASE_URL });
+
+export const auth = createAppAuth({
+  pool: db,
   secret: AUTH_SECRET,
-  // biome-ignore lint/style/useNamingConvention: Better Auth requires baseURL.
   baseURL: optionalEnv('BETTER_AUTH_URL', 'http://localhost:4000/api'),
-  emailAndPassword: { enabled: true },
-  user: {
-    additionalFields: {
-      appRole: {
-        type: ['admin', 'supervisor', 'driver', 'citizen'],
-        required: true,
-        defaultValue: 'citizen',
-      },
-    },
-  },
-  telemetry: { enabled: false },
-  plugins: [admin({ adminRoles: ['admin'] })],
 });
 
-const seedUsers = [
-  {
-    authRole: 'user' as const,
-    appRole: 'supervisor' as const,
-    name: 'Juan Díaz',
-    username: 'juan.supervisor',
-    email: 'supervisor@example.com',
-  },
-  {
-    authRole: 'user' as const,
-    appRole: 'driver' as const,
-    name: 'Luis Martínez',
-    username: 'luis.driver',
-    email: 'driver@example.com',
-  },
-  {
-    authRole: 'user' as const,
-    appRole: 'citizen' as const,
-    name: 'María Pérez',
-    username: 'maria.citizen',
-    email: 'citizen@example.com',
-  },
+const seedUsers: Array<{ role: AppRole; name: string; email: string }> = [
+  { role: 'supervisor', name: 'Juan Díaz', email: 'supervisor@example.com' },
+  { role: 'driver', name: 'Luis Martínez', email: 'driver@example.com' },
+  { role: 'citizen', name: 'María Pérez', email: 'citizen@example.com' },
 ];
 
 const seedData = {
@@ -89,29 +56,24 @@ const seedData = {
   ],
 };
 
-async function ensureUser(sessionToken: string, u: (typeof seedUsers)[number]) {
-  const { rows } = await db.query('SELECT * FROM "user" WHERE email=$1', [u.email]);
-  if (rows.length > 0) {
-    return rows[0];
+/** Every non-citizen seed user joins the organization `setup:admin` bootstrapped; a citizen never has one, same as a self-registered citizen. */
+export async function getOrganizationId(): Promise<string> {
+  const { rows } = await db.query('SELECT id FROM organization LIMIT 1');
+  const organizationId = rows[0]?.id;
+  if (!organizationId) {
+    throw new Error('No existe ninguna organización. Ejecuta "setup:admin" antes de sembrar datos.');
   }
+  return organizationId;
+}
 
-  await auth.api.createUser({
-    body: {
-      email: u.email,
-      password: 'password123',
-      name: u.name,
-      role: u.authRole,
-      data: {
-        appRole: u.appRole,
-        username: u.username,
-      },
-    },
-    // biome-ignore lint/style/useNamingConvention: HTTP requires the capitalized header name.
-    headers: { Cookie: sessionToken },
-  });
-
-  const { rows: created } = await db.query('SELECT * FROM "user" WHERE email=$1', [u.email]);
-  return created[0];
+export function ensureUser(organizationId: string, u: (typeof seedUsers)[number]) {
+  return ensureStaffUser(
+    auth,
+    db,
+    u.role === 'citizen'
+      ? { name: u.name, email: u.email, password: 'password123', role: 'citizen' }
+      : { name: u.name, email: u.email, password: 'password123', role: u.role, organizationId },
+  );
 }
 
 async function ensureTruck(dbClient: PoolClient, t: (typeof seedData.trucks)[number]) {
@@ -145,13 +107,18 @@ async function ensureRoute(dbClient: PoolClient, supervisorId: string) {
     ],
   );
 
-  await Promise.all(
-    waypoints.map((wp) =>
-      dbClient.query(
-        'INSERT INTO route_waypoint (id,route_id,sequence_order,lat,lng,estimated_arrival_offset_minutes,street_name) VALUES ($1,$2,$3,$4,$5,$6,$7)',
-        [createId(), routeId, wp.order, wp.lat, wp.lng, wp.offset, wp.streetName],
-      ),
-    ),
+  await dbClient.query(
+    `INSERT INTO route_waypoint (id,route_id,sequence_order,lat,lng,estimated_arrival_offset_minutes,street_name)
+     SELECT * FROM UNNEST($1::text[],$2::text[],$3::int[],$4::float8[],$5::float8[],$6::int[],$7::text[])`,
+    [
+      waypoints.map(() => createId()),
+      waypoints.map(() => routeId),
+      waypoints.map((wp) => wp.order),
+      waypoints.map((wp) => wp.lat),
+      waypoints.map((wp) => wp.lng),
+      waypoints.map((wp) => wp.offset),
+      waypoints.map((wp) => wp.streetName),
+    ],
   );
 
   return routeId;
@@ -185,25 +152,10 @@ async function ensureAssignment({
   );
 }
 
-async function authenticateAdmin() {
-  const s = spinner();
-  s.start('Iniciando sesión como administrador...');
-  const { headers } = await auth.api.signInEmail({
-    returnHeaders: true,
-    body: { email: ADMIN_EMAIL, password: ADMIN_PASS },
-  });
-  const sessionToken = headers.get('set-cookie');
-  if (!sessionToken) {
-    throw new Error('No session token');
-  }
-  s.stop('Sesión iniciada.');
-  return sessionToken;
-}
-
-async function createSeedUsers(sessionToken: string) {
+async function createSeedUsers(organizationId: string) {
   const s = spinner();
   s.start('Creando usuarios...');
-  const userList = await Promise.all(seedUsers.map((u) => ensureUser(sessionToken, u)));
+  const userList = await Promise.all(seedUsers.map((u) => ensureUser(organizationId, u)));
   const users = new Map(userList.map((u) => [u.email, u]));
   s.stop('Usuarios listos.');
   return users;
@@ -213,7 +165,11 @@ async function seedDatabase(client: PoolClient, supervisor: { id: string }, driv
   const s = spinner();
 
   s.start('Creando camiones...');
-  const truckIds = await Promise.all(seedData.trucks.map((t) => ensureTruck(client, t)));
+  const truckIds: string[] = [];
+  for (const t of seedData.trucks) {
+    // biome-ignore lint/performance/noAwaitInLoops: ensureTruck runs on the shared transaction client, so these must not run concurrently.
+    truckIds.push(await ensureTruck(client, t));
+  }
   s.stop('Camiones listos.');
 
   s.start('Creando ruta y waypoints...');
@@ -223,7 +179,8 @@ async function seedDatabase(client: PoolClient, supervisor: { id: string }, driv
   s.start('Creando asignaciones...');
   await ensureAssignment({
     dbClient: client,
-    truckId: truckIds[0],
+    // biome-ignore lint/style/noNonNullAssertion: seedData.trucks is a fixed, non-empty literal.
+    truckId: truckIds[0]!,
     routeId,
     driverId: driver.id,
     supervisorId: supervisor.id,
@@ -239,8 +196,8 @@ async function main() {
   const client = await db.connect();
 
   try {
-    const sessionToken = await authenticateAdmin();
-    const users = await createSeedUsers(sessionToken);
+    const organizationId = await getOrganizationId();
+    const users = await createSeedUsers(organizationId);
 
     const supervisor = users.get('supervisor@example.com');
     const driver = users.get('driver@example.com');
@@ -270,4 +227,6 @@ async function main() {
   }
 }
 
-main();
+if (import.meta.main) {
+  main();
+}
