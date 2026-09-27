@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "biome lint .",
-    "typecheck": "tsc --noEmit && tsc --noEmit -p tests",
+    "typecheck": "next typegen && tsc --noEmit && tsc --noEmit -p tests",
     "format": "biome format --write .",
     "test": "bun test tests"
   },
