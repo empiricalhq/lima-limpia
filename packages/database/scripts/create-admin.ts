@@ -1,8 +1,8 @@
 import { cancel, group, intro, log, note, outro, password, spinner, text } from '@clack/prompts';
-import { betterAuth } from 'better-auth';
-import { organization } from 'better-auth/plugins';
+import { createId } from '@paralleldrive/cuid2';
 import { Pool } from 'pg';
 import color from 'picocolors';
+import { createAppAuth, deleteUnusedUser, insertMember, withTransaction } from '../src/auth/index.ts';
 import { mustEnv, optionalEnv } from './env.js';
 
 const MIN_NAME_LENGTH = 5;
@@ -12,25 +12,16 @@ const EMAIL_REGEX = /^\S+@\S+\.\S+$/;
 const DATABASE_URL = mustEnv('DATABASE_URL');
 const AUTH_SECRET = mustEnv('BETTER_AUTH_SECRET');
 
-const db = new Pool({
-  connectionString: DATABASE_URL,
-});
+export const db = new Pool({ connectionString: DATABASE_URL });
 
-const auth = betterAuth({
-  database: db,
+export const auth = createAppAuth({
+  pool: db,
   secret: AUTH_SECRET,
-  // biome-ignore lint/style/useNamingConvention: Better Auth requires baseURL.
   baseURL: optionalEnv('BETTER_AUTH_URL', 'http://localhost:4000/api'),
-  emailAndPassword: { enabled: true },
-  telemetry: { enabled: false },
-  plugins: [organization({})],
 });
 
-async function checkExistingOrganization(): Promise<boolean> {
-  const s = spinner();
-  s.start('Revisando si ya existe una organización...');
+export async function checkExistingOrganization(): Promise<boolean> {
   const { rows } = await db.query(`SELECT 1 FROM "organization" LIMIT 1`);
-  s.stop('Revisión completada.');
   return rows.length > 0;
 }
 
@@ -76,43 +67,48 @@ async function collectUserInput() {
   );
 }
 
-async function createOwnerUser(email: string, userPassword: string, name: string) {
-  const s = spinner();
-  s.start('Creando usuario propietario...');
-  const { user: ownerUser } = await auth.api.signUpEmail({
-    body: {
-      email,
-      password: userPassword,
-      name,
-    },
+/**
+ * Creates the owner through the admin plugin's `createUser`, not `signUpEmail`, so `user.role`
+ * lands on `'owner'` (an `AppRole`) instead of the default `'user'`. The organization and its
+ * owner membership are then written directly, in one transaction, rather than through Better
+ * Auth's `createOrganization`: that endpoint runs on Better Auth's own connection, which cannot
+ * join a transaction held open on `db`, and the two rows must land together or not at all, the
+ * same way `insertMember` writes a staff member's row (see ARCHITECTURE.md).
+ */
+export async function bootstrapOwner(input: {
+  name: string;
+  email: string;
+  password: string;
+}): Promise<{ userId: string; organizationId: string }> {
+  const { user } = await auth.api.createUser({
+    body: { name: input.name, email: input.email, password: input.password, role: 'owner' },
   });
-  s.stop('Usuario propietario creado.');
-  return ownerUser;
-}
 
-async function createOrganization(userId: string) {
-  const s = spinner();
-  s.start('Creando organización principal...');
-  await auth.api.createOrganization({
-    body: {
-      name: 'Lima Limpia',
-      slug: 'lima-limpia',
-      userId,
-    },
-  });
-  s.stop('Organización creada correctamente.');
+  try {
+    const organizationId = createId();
+    await withTransaction(db, async (client) => {
+      await client.query('INSERT INTO organization (id, name, slug) VALUES ($1, $2, $3)', [
+        organizationId,
+        'Lima Limpia',
+        'lima-limpia',
+      ]);
+      await insertMember(client, { userId: user.id, organizationId, role: 'owner' });
+    });
+
+    return { userId: user.id, organizationId };
+  } catch (error) {
+    await deleteUnusedUser(db, user.id);
+    throw error;
+  }
 }
 
 function displaySuccessMessage(email: string, userPassword: string) {
   const noteMessage = `
-Agrega estas credenciales al archivo ${color.bold('.env')} en la raíz del proyecto:
-
-${color.green(`SYSTEM_ADMIN_EMAIL="${email}"`)}
-${color.green(`SYSTEM_ADMIN_PASSWORD="${userPassword}"`)}
+${color.green(`Correo: ${email}`)}
+${color.green(`Contraseña: ${userPassword}`)}
 `;
-  note(noteMessage, 'Próximos pasos (apps/api/test):');
-  outro(color.green('Propietario de la organización configurado correctamente.'));
-  outro('Ahora puedes usar esta cuenta para la prueba de la API via "bun run test".');
+  note(noteMessage, 'Propietario de la organización:');
+  outro(color.green('Configurado correctamente. Ya puedes iniciar sesión con esta cuenta.'));
 }
 
 function handleError(error: unknown) {
@@ -134,7 +130,10 @@ async function main() {
   intro(color.inverse(' @packages/database: creación de organización y propietario '));
 
   try {
+    const s = spinner();
+    s.start('Revisando si ya existe una organización...');
     const hasOrganization = await checkExistingOrganization();
+    s.stop('Revisión completada.');
 
     if (hasOrganization) {
       log.warn('Ya existe una organización.');
@@ -143,8 +142,12 @@ async function main() {
     }
 
     const userInput = await collectUserInput();
-    const ownerUser = await createOwnerUser(userInput.email, userInput.password, userInput.name);
-    await createOrganization(ownerUser.id);
+
+    const creating = spinner();
+    creating.start('Creando usuario propietario y organización principal...');
+    await bootstrapOwner(userInput);
+    creating.stop('Propietario y organización creados.');
+
     displaySuccessMessage(userInput.email, userInput.password);
   } catch (error: unknown) {
     handleError(error);
@@ -153,7 +156,9 @@ async function main() {
   }
 }
 
-main().catch((error: unknown) => {
-  log.error(error instanceof Error ? error.message : String(error));
-  process.exit(1);
-});
+if (import.meta.main) {
+  main().catch((error: unknown) => {
+    log.error(error instanceof Error ? error.message : String(error));
+    process.exit(1);
+  });
+}
