@@ -1,0 +1,14 @@
+language js
+
+// node-postgres runs one query at a time per client. Concurrent client.query calls are only queued,
+// are deprecated, and are removed in pg@9.
+`$combinator($args)` where {
+  $combinator <: or {
+    `Promise.all`,
+    `Promise.allSettled`,
+    `Promise.race`,
+    `Promise.any`
+  },
+  $args <: contains `$client.query($_)` where { $client <: r"(?i).*client" },
+  register_diagnostic(span=$args, message="Do not run queries concurrently on one pg client. Await each query in order, or query the pool.", severity="error")
+}

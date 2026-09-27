@@ -29,6 +29,7 @@
       "suspicious": "on"
     }
   },
+  "plugins": ["./biome-plugins/no-concurrent-client-queries.grit"],
   "javascript": {
     "formatter": {
       "quoteStyle": "single"
