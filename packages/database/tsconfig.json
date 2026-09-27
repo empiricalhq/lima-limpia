@@ -4,6 +4,7 @@
       "@/*": ["./src/*"]
     },
 
+    "types": ["bun"],
     "lib": ["ESNext"],
     "target": "ESNext",
     "module": "Preserve",
