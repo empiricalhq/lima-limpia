@@ -108,6 +108,7 @@
       },
       "devDependencies": {
         "@tailwindcss/postcss": "^4.3.3",
+        "@types/bun": "1.4.2",
         "@types/leaflet": "1.9.22",
         "@types/node": "26.6.2",
         "@types/react": "19.3.0",

@@ -1,9 +1,10 @@
 import 'server-only';
 import { cookies } from 'next/headers';
 import type { AuthContext } from '@/features/auth/lib';
+import { isMemberRoleAbsent } from '@/features/auth/roles';
 import type { CreateIssueSchema } from '@/features/issues/schemas';
 import type { CreateRouteSchema } from '@/features/routes/schemas';
-import type { Issue, Route, Truck, User } from './api-contract';
+import type { Issue, MemberRole, Route, Truck, User } from './api-contract';
 import { ENV } from './env';
 
 const HTTP_NO_CONTENT = 204;
@@ -133,6 +134,21 @@ const admin = {
 
 const auth = {
   getSession: () => request<AuthContext | null>('/api/auth/get-session'),
+  /**
+   * Null when the user genuinely has no active member role (no organization, or not a member of
+   * it), e.g. a citizen. Rethrows on any other failure (5xx, connection error) — that is a failed
+   * lookup, not a "no role" answer, and callers must not treat it as one.
+   */
+  getActiveMemberRole: async (): Promise<MemberRole | null> => {
+    try {
+      return await request<MemberRole>('/api/auth/organization/get-active-member-role');
+    } catch (error) {
+      if (error instanceof ApiError && isMemberRoleAbsent(error.status)) {
+        return null;
+      }
+      throw error;
+    }
+  },
 };
 
 export const api = {

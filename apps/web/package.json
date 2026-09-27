@@ -7,8 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "biome lint .",
-    "typecheck": "tsc --noEmit",
-    "format": "biome format --write ."
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tests",
+    "format": "biome format --write .",
+    "test": "bun test tests"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",
@@ -44,6 +45,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.3",
+    "@types/bun": "1.4.2",
     "@types/leaflet": "1.9.22",
     "@types/node": "26.6.2",
     "@types/react": "19.3.0",

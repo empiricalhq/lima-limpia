@@ -1,16 +1,42 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import type { AuthContext } from './features/auth/lib';
-import { hasAnyRole, PROTECTED_ROLES, SETTINGS_ROLES } from './features/auth/roles';
+import { hasAnyRole, isMemberRoleAbsent, PROTECTED_ROLES, SETTINGS_ROLES, toRoleList } from './features/auth/roles';
 import { ENV } from './lib/env';
 
 const AUTH_ROUTES = ['/signin'];
 const PROTECTED_ROUTE_PREFIX = '/dashboard';
 const SETTINGS_ROUTE_PREFIX = '/settings';
 
-async function getAuthFromRequest(request: NextRequest): Promise<AuthContext | null> {
+type AuthLookup =
+  | { status: 'unauthenticated' }
+  /** The member-role lookup itself failed (5xx, network error) — distinct from a real "no role" answer. */
+  | { status: 'lookup-failed' }
+  | { status: 'ok'; auth: AuthContext };
+
+/** Null roles means the lookup failed; the caller must not read that as "no role". */
+async function fetchMemberRoles(headers: HeadersInit): Promise<string[] | null> {
+  try {
+    const res = await fetch(`${ENV.API_BASE_URL}/api/auth/organization/get-active-member-role`, {
+      headers,
+      cache: 'no-store',
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      return toRoleList(data?.role);
+    }
+
+    return isMemberRoleAbsent(res.status) ? [] : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Better Auth's global `user.role` is not the source of staff access checks; organization membership is. */
+async function getAuthFromRequest(request: NextRequest): Promise<AuthLookup> {
   const token = request.cookies.get('better-auth.session_token')?.value;
   if (!token) {
-    return null;
+    return { status: 'unauthenticated' };
   }
 
   const headers = { Cookie: `better-auth.session_token=${token}` };
@@ -19,16 +45,24 @@ async function getAuthFromRequest(request: NextRequest): Promise<AuthContext | n
     const sessionRes = await fetch(`${ENV.API_BASE_URL}/api/auth/get-session`, { headers, cache: 'no-store' });
 
     if (!sessionRes.ok) {
-      return null;
+      return { status: 'unauthenticated' };
     }
     const sessionData = await sessionRes.json();
+    if (!sessionData?.session) {
+      return { status: 'unauthenticated' };
+    }
+
+    const roles = await fetchMemberRoles(headers);
+    if (roles === null) {
+      return { status: 'lookup-failed' };
+    }
 
     return {
-      user: sessionData.user,
-      session: sessionData.session,
+      status: 'ok',
+      auth: { user: sessionData.user, session: sessionData.session, roles },
     };
   } catch {
-    return null;
+    return { status: 'unauthenticated' };
   }
 }
 
@@ -40,6 +74,11 @@ function redirectToSignIn(request: NextRequest, pathname: string): NextResponse 
   const signInUrl = new URL('/signin', request.url);
   signInUrl.searchParams.set('callbackUrl', pathname);
   return NextResponse.redirect(signInUrl);
+}
+
+/** The member-role lookup failed; fail the request but keep the session, since the user's role is still unknown. */
+function serviceUnavailable(): NextResponse {
+  return new NextResponse('No se pudo verificar el acceso. Inténtalo de nuevo.', { status: 503 });
 }
 
 function guardProtectedRoute(request: NextRequest, pathname: string, userRoles: string[]): NextResponse | null {
@@ -64,15 +103,19 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const auth = await getAuthFromRequest(request);
-  const isAuthenticated = Boolean(auth?.user);
-  const userRoles = auth?.user?.role?.split(',') ?? [];
+  const lookup = await getAuthFromRequest(request);
+  const isProtectedRoute = pathname.startsWith(PROTECTED_ROUTE_PREFIX);
+
+  if (lookup.status === 'lookup-failed') {
+    return isProtectedRoute ? serviceUnavailable() : NextResponse.next();
+  }
+
+  const isAuthenticated = lookup.status === 'ok';
+  const userRoles = lookup.status === 'ok' ? lookup.auth.roles : [];
 
   if (AUTH_ROUTES.includes(pathname) && isAuthenticated) {
     return NextResponse.redirect(new URL(PROTECTED_ROUTE_PREFIX, request.url));
   }
-
-  const isProtectedRoute = pathname.startsWith(PROTECTED_ROUTE_PREFIX);
 
   if (isProtectedRoute && !isAuthenticated) {
     return redirectToSignIn(request, pathname);
