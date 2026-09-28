@@ -45,6 +45,10 @@
   },
   "overrides": [
     {
+      "includes": ["**/internal/domains/**/service.ts", "**/internal/domains/**/handler.ts"],
+      "plugins": ["./biome-plugins/no-service-database-access.grit"]
+    },
+    {
       "includes": ["**/page.tsx", "**/layout.tsx"],
       "linter": {
         "rules": {

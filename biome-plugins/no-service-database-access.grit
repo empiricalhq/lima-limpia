@@ -1,0 +1,13 @@
+language js
+
+// SQL on tenant tables must run through a repository's scoped methods. A service that reaches
+// for the database itself can write a query with no tenant filter.
+`$db.$method($args)` where {
+  $db <: r"(?i).*\bdb\b|this\.db",
+  $method <: or {
+    `query`,
+    `getClient`,
+    `withTransaction`
+  },
+  register_diagnostic(span=$method, message="Services and handlers do not query the database. Add a method to a repository so the query runs under a scope.", severity="error")
+}
