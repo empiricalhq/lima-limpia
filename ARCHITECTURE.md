@@ -282,6 +282,40 @@ The database package contains tables for authentication, organizations, routes,
 assignments, trucks, locations, issues, messages, push tokens, and citizen
 profiles.
 
+## Route assignment lifecycle
+
+A route assignment pairs a route, a truck and a driver. Its `status` is one of
+`scheduled`, `active`, `completed` and `cancelled`.
+
+| Transition              | Who                 | When                                    |
+| ----------------------- | ------------------- | --------------------------------------- |
+| created as `scheduled`  | staff               | An administrator creates the assignment |
+| `scheduled` to `active` | the assigned driver | The driver starts the route             |
+| `active` to `completed` | the assigned driver | The driver ends the route               |
+
+Each move is one `UPDATE` that names the expected current status, the driver and
+the organization. A request from another driver, another municipality, or for an
+assignment in a different state matches no row and fails as not found, so a
+state cannot be skipped or repeated. Nothing moves an assignment to `cancelled`
+yet, and no transition leaves `completed`.
+
+A driver's location is recorded only against their `active` assignment.
+`LocationRepository.recordDriverLocation` reads that assignment with `FOR SHARE`
+in the same transaction that writes the current location and the history row,
+and holds the lock until the transaction commits. A completion needs a row lock
+that conflicts with it, so it waits for the location write to commit and cannot
+interleave. A location can therefore never be recorded against an assignment
+that has already completed. Without the lock, the read and the write would still
+race under `READ COMMITTED`, even inside one transaction.
+
+Filing a driver issue does not take the lock. An issue reports something the
+driver saw during the route, and one filed as the route completes belongs to
+that assignment. A row that names a just-completed assignment is correct. The
+only reader of driver issues, the open-issues list, selects no assignment
+column, so nothing depends on the assignment still being `active`. A location is
+different: consumers treat a truck location as live only while its assignment is
+`active`, so a late write would misstate where the truck is.
+
 ## Data freshness
 
 The citizen app polls truck data only while it is active. The API treats a truck
