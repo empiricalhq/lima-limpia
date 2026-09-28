@@ -12,6 +12,13 @@ export const UserQueries = {
     WHERE m."organizationId" = $1 AND m.role = $2
     ORDER BY u.name
   `,
+  findOrganizationMembers: `
+    SELECT u.id, u.name, u.email, u."createdAt", m.role
+    FROM member m
+    JOIN "user" u ON u.id = m."userId"
+    WHERE m."organizationId" = $1
+    ORDER BY m.role, u.name
+  `,
   updateProfile: `
     UPDATE "user" SET name = $2, email = $3, "updatedAt" = NOW()
     WHERE id = $1

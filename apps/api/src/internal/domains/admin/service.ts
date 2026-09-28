@@ -64,12 +64,18 @@ export class AdminService extends BaseService {
     return this.createOrganizationUser(data, organizationId);
   }
 
+  async getMembers(organizationId: string): Promise<UserWithRole[]> {
+    return this.userRepo.findOrganizationMembers(organizationId);
+  }
+
+  /** A support user acting as the caller (`impersonatedBy`) may edit a profile but never a login. */
   async updateUser(
     headers: Headers,
     userId: string,
     data: { name: string; email: string; password?: string },
-    organizationId: string,
+    caller: { organizationId: string; impersonatedBy: string | null },
   ): Promise<UserWithRole> {
+    const { organizationId, impersonatedBy } = caller;
     const target = await this.userRepo.findOrganizationMember(userId, organizationId);
     if (!target) {
       throw new NotFoundError('User not found');
@@ -77,6 +83,11 @@ export class AdminService extends BaseService {
     await this.assertCanManage(headers, target.role);
 
     const email = data.email.toLowerCase();
+    const changesLogin = data.password !== undefined || email !== target.email.toLowerCase();
+    if (impersonatedBy && changesLogin) {
+      throw new ForbiddenError('An impersonated session cannot change a login');
+    }
+
     const passwordHash = data.password ? await this.authService.hashPassword(data.password) : undefined;
     try {
       await this.userRepo.updateProfile(userId, data.name, email, passwordHash);

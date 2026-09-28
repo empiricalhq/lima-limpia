@@ -11,6 +11,8 @@ export interface AuthEnv {
   Variables: {
     user: AuthUser;
     session: AuthSession;
+    /** The support user acting as `user`, or null when `user` signed in themselves. */
+    impersonatedBy: string | null;
   };
 }
 

@@ -49,7 +49,10 @@ export function createAdminHandler(
     async (c) => {
       const { id } = c.req.valid('param');
       const userData = c.req.valid('json');
-      const updatedUser = await adminService.updateUser(c.req.raw.headers, id, userData, c.get('scope').organizationId);
+      const updatedUser = await adminService.updateUser(c.req.raw.headers, id, userData, {
+        organizationId: c.get('scope').organizationId,
+        impersonatedBy: c.get('impersonatedBy'),
+      });
       return success(c, updatedUser);
     },
   );

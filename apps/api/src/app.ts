@@ -23,6 +23,7 @@ app.route('/api/auth', handlers.auth);
 app.route('/api/admin', handlers.admin);
 app.route('/api/driver', handlers.driver);
 app.route('/api/citizen', handlers.citizen);
+app.route('/api/support', handlers.support);
 
 app.onError((err, c) => {
   if (err instanceof AppError) {

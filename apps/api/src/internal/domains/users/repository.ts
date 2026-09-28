@@ -26,6 +26,10 @@ export class UserRepository extends BaseRepository {
     });
   }
 
+  async findOrganizationMembers(organizationId: string): Promise<UserWithRole[]> {
+    return this.executeQuery<UserWithRole>(UserQueries.findOrganizationMembers, [organizationId]);
+  }
+
   async findOrganizationMembersByRole(organizationId: string, role: MemberRole): Promise<UserWithRole[]> {
     return this.executeQuery<UserWithRole>(UserQueries.findOrganizationMembersByRole, [organizationId, role]);
   }
