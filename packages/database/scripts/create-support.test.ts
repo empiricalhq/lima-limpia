@@ -1,7 +1,6 @@
 import { afterAll, beforeEach, expect, test } from 'bun:test';
 import { createId } from '@paralleldrive/cuid2';
-import { bootstrapOwner } from './create-municipality.ts';
-import { db, grantSupport, revokeSupport } from './create-support.ts';
+import { auth, db, grantSupport, revokeSupport } from './create-support.ts';
 
 beforeEach(async () => {
   await db.query('TRUNCATE TABLE organization, "user" CASCADE');
@@ -13,6 +12,13 @@ afterAll(async () => {
 
 const roleOf = async (userId: string) =>
   (await db.query<{ role: string }>('SELECT role FROM "user" WHERE id = $1', [userId])).rows[0]?.role;
+
+const createOwner = async () => {
+  const { user } = await auth.api.createUser({
+    body: { name: 'Owner Uno', email: 'owner@test.com', password: 'owner-password-123', role: 'owner' },
+  });
+  return user.id;
+};
 
 test('creates a dedicated account whose global role is support and that belongs to no municipality', async () => {
   const { userId } = await grantSupport({
@@ -32,13 +38,7 @@ test('creates a dedicated account whose global role is support and that belongs 
 });
 
 test('refuses an email that already has an account and leaves that account as it was', async () => {
-  const { userId } = await bootstrapOwner({
-    municipalityName: 'Municipalidad de prueba',
-    municipalitySlug: 'prueba',
-    name: 'Owner Uno',
-    email: 'owner@test.com',
-    password: 'owner-password-123',
-  });
+  const userId = await createOwner();
 
   await expect(
     grantSupport({ name: 'Owner Uno', email: 'owner@test.com', password: 'support-password-123' }),
@@ -65,13 +65,7 @@ test('revoking returns the account to a citizen and ends its sessions', async ()
 });
 
 test('revoking refuses an account that is not a support account', async () => {
-  const { userId } = await bootstrapOwner({
-    municipalityName: 'Municipalidad de prueba',
-    municipalitySlug: 'prueba',
-    name: 'Owner Uno',
-    email: 'owner@test.com',
-    password: 'owner-password-123',
-  });
+  const userId = await createOwner();
 
   await expect(revokeSupport('owner@test.com')).rejects.toThrow();
   await expect(revokeSupport('nobody@test.com')).rejects.toThrow();
