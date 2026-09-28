@@ -1,6 +1,7 @@
 import { type AppRole, canManageRole, createStaffUser, toRoleList } from '@lima-garbage/database';
 import { APIError } from 'better-auth/api';
 import { BaseService } from '@/internal/shared/services/base-service';
+import type { OrganizationScope } from '@/internal/shared/tenancy/scope';
 import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from '@/internal/shared/utils/errors';
 import { HttpStatus } from '@/internal/shared/utils/http-status';
 import type { CreateAssignmentRequest, RouteAssignment } from '../assignments/models';
@@ -123,54 +124,62 @@ export class AdminService extends BaseService {
     }
   }
 
-  async getTrucks(): Promise<TruckWithDetails[]> {
-    return this.truckRepo.findAllActive();
+  getTrucks(scope: OrganizationScope): Promise<TruckWithDetails[]> {
+    return this.truckRepo.findAllActive(scope);
   }
 
-  async createTruck(data: CreateTruckRequest): Promise<Truck> {
+  async createTruck(scope: OrganizationScope, data: CreateTruckRequest): Promise<Truck> {
     try {
-      return await this.truckRepo.create(data);
+      return await this.truckRepo.create(scope, data);
     } catch (error) {
       this.handleDatabaseError(error);
     }
   }
 
-  async deactivateTruck(id: string): Promise<void> {
-    const success = await this.truckRepo.deactivate(id);
+  async deactivateTruck(scope: OrganizationScope, id: string): Promise<void> {
+    const success = await this.truckRepo.deactivate(scope, id);
     if (!success) {
       throw new NotFoundError('Truck not found');
     }
   }
 
-  async getRoutes(): Promise<RouteWithDetails[]> {
-    return this.routeRepo.findAllActive();
+  getRoutes(scope: OrganizationScope): Promise<RouteWithDetails[]> {
+    return this.routeRepo.findAllActive(scope);
   }
 
-  async createRoute(data: CreateRouteRequest, createdBy: string): Promise<Route> {
-    return this.routeRepo.create(data, createdBy);
+  createRoute(scope: OrganizationScope, data: CreateRouteRequest, createdBy: string): Promise<Route> {
+    return this.routeRepo.create(scope, data, createdBy);
   }
 
-  async getRouteWaypoints(routeId: string): Promise<RouteWaypoint[]> {
-    return this.routeRepo.findWaypointsByRouteId(routeId);
+  async getRouteWaypoints(scope: OrganizationScope, routeId: string): Promise<RouteWaypoint[]> {
+    if (!(await this.routeRepo.exists(scope, routeId))) {
+      throw new NotFoundError('Route not found');
+    }
+    return this.routeRepo.findWaypointsByRouteId(scope, routeId);
   }
 
-  async createAssignment(data: CreateAssignmentRequest, assignedBy: string): Promise<RouteAssignment> {
+  async createAssignment(
+    scope: OrganizationScope,
+    data: CreateAssignmentRequest,
+    assignedBy: string,
+  ): Promise<RouteAssignment> {
     try {
-      return await this.assignmentRepo.create(data, assignedBy);
+      return await this.assignmentRepo.create(scope, data, assignedBy);
     } catch (error) {
       this.handleDatabaseError(error);
     }
   }
 
-  async getOpenIssues(): Promise<IssueReportSummary[]> {
-    return this.issueRepo.findAllOpen();
+  getOpenIssues(scope: OrganizationScope): Promise<IssueReportSummary[]> {
+    return this.issueRepo.findAllOpen(scope);
   }
 
   async createIssue(
+    scope: OrganizationScope,
     data: { type: CitizenIssueType; description?: string; lat: number; lng: number },
     createdBy: string,
   ): Promise<void> {
-    await this.issueRepo.createCitizenIssue(createdBy, data);
+    await this.issueRepo.createCitizenIssue(scope, createdBy, data);
   }
 
   private handleAuthApiError(error: unknown): never {

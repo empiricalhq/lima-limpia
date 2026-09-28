@@ -1,11 +1,12 @@
-import { BaseRepository } from '@/internal/shared/repository/base-repository';
+import type { OrganizationScope } from '@/internal/shared/tenancy/scope';
+import { TenantRepository } from '@/internal/shared/tenancy/tenant-repository';
 import type { AssignmentWithDetails, CreateAssignmentRequest, RouteAssignment } from './models';
 import { AssignmentQueries } from './queries';
 
-export class AssignmentRepository extends BaseRepository {
-  async create(data: CreateAssignmentRequest, assignedBy: string): Promise<RouteAssignment> {
+export class AssignmentRepository extends TenantRepository {
+  async create(scope: OrganizationScope, data: CreateAssignmentRequest, assignedBy: string): Promise<RouteAssignment> {
     const { route_id, truck_id, driver_id, scheduled_start_time, scheduled_end_time, notes } = data;
-    const result = await this.executeQuery<RouteAssignment>(AssignmentQueries.create, [
+    const { rows } = await this.write<RouteAssignment>(scope, AssignmentQueries.create, [
       route_id,
       truck_id,
       driver_id,
@@ -15,29 +16,27 @@ export class AssignmentRepository extends BaseRepository {
       assignedBy,
     ]);
 
-    if (!result[0]) {
+    if (!rows[0]) {
       throw new Error('Database query failed to return created assignment.');
     }
-    return result[0];
+    return rows[0];
   }
 
-  async findCurrentByDriverId(driverId: string): Promise<AssignmentWithDetails | null> {
-    return this.executeQuerySingle<AssignmentWithDetails>(AssignmentQueries.findCurrentByDriverId, [driverId]);
+  findCurrentByDriverId(scope: OrganizationScope, driverId: string): Promise<AssignmentWithDetails | null> {
+    return this.readOne<AssignmentWithDetails>(scope, AssignmentQueries.findCurrentByDriverId, [driverId]);
   }
 
-  async start(id: string, driverId: string): Promise<boolean> {
-    const result = await this.executeQueryWithCount(AssignmentQueries.start, [id, driverId]);
-    return result.count > 0;
+  async start(scope: OrganizationScope, id: string, driverId: string): Promise<boolean> {
+    const { count } = await this.write(scope, AssignmentQueries.start, [id, driverId]);
+    return count > 0;
   }
 
-  async complete(id: string, driverId: string): Promise<boolean> {
-    const result = await this.executeQueryWithCount(AssignmentQueries.complete, [id, driverId]);
-    return result.count > 0;
+  async complete(scope: OrganizationScope, id: string, driverId: string): Promise<boolean> {
+    const { count } = await this.write(scope, AssignmentQueries.complete, [id, driverId]);
+    return count > 0;
   }
 
-  async findActiveByDriverId(driverId: string): Promise<{ id: string; truck_id: string } | null> {
-    return this.executeQuerySingle<{ id: string; truck_id: string }>(AssignmentQueries.findActiveByDriverId, [
-      driverId,
-    ]);
+  findActiveByDriverId(scope: OrganizationScope, driverId: string): Promise<{ id: string; truck_id: string } | null> {
+    return this.readOne<{ id: string; truck_id: string }>(scope, AssignmentQueries.findActiveByDriverId, [driverId]);
   }
 }

@@ -5,11 +5,13 @@ import { createAuthHandler } from '@/internal/domains/auth/handler';
 
 import { AuthService } from '@/internal/domains/auth/service';
 import { createCitizenHandler } from '@/internal/domains/citizen/handler';
+import { CitizenProfileRepository } from '@/internal/domains/citizen/repository';
 import { CitizenService } from '@/internal/domains/citizen/service';
 import { createDriverHandler } from '@/internal/domains/driver/handler';
 import { DriverService } from '@/internal/domains/driver/service';
 import { createHealthHandler } from '@/internal/domains/health/handler';
 import { IssueRepository } from '@/internal/domains/issues/repository';
+import { LocationRepository } from '@/internal/domains/locations/repository';
 import { RouteRepository } from '@/internal/domains/routes/repository';
 import { TruckRepository } from '@/internal/domains/trucks/repository';
 import { UserRepository } from '@/internal/domains/users/repository';
@@ -32,12 +34,14 @@ export function createContainer() {
   const assignmentRepo = new AssignmentRepository(db);
   const issueRepo = new IssueRepository(db);
   const userRepo = new UserRepository(db);
+  const locationRepo = new LocationRepository(db);
+  const profileRepo = new CitizenProfileRepository(db);
 
   const emailService = new EmailService(config.email);
   const authService = new AuthService({ config, db, emailService });
   const adminService = new AdminService({ truckRepo, routeRepo, assignmentRepo, issueRepo, userRepo, authService });
-  const driverService = new DriverService(assignmentRepo, routeRepo, issueRepo, db);
-  const citizenService = new CitizenService(issueRepo, db, truckRepo);
+  const driverService = new DriverService({ assignmentRepo, routeRepo, issueRepo, locationRepo });
+  const citizenService = new CitizenService({ issueRepo, truckRepo, routeRepo, locationRepo, profileRepo });
 
   const corsMiddleware = createCorsMiddleware(config);
   const authMiddleware = createAuthMiddleware(authService);

@@ -18,7 +18,7 @@ export class AuthService {
     this.pool = db.getPool();
     // handler.ts's route allowlist is what actually keeps every plugin-mounted endpoint other
     // than the ones it lists unreachable; createAppAuth's fixed roles are defense in depth for
-    // the same reason (see ARCHITECTURE.md). The database package's bootstrap-owner script,
+    // the same reason (see ARCHITECTURE.md). The database package's `setup:municipality` script,
     // AdminService.createOrganizationUser, and the dev-only seed script are the only writers of
     // organization or member rows, and all three do it with a direct SQL insert in a transaction
     // (see `insertMember`), not through better-auth's `/organization/create` or

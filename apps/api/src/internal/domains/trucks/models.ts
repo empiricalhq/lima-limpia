@@ -8,12 +8,15 @@ export interface Truck {
   created_at: Date;
 }
 
-export interface TruckWithDetails extends Truck {
+export interface CitizenTruck extends Truck {
   lat?: number;
   lng?: number;
   location_updated_at?: Date;
-  driver_name?: string;
   assignment_status?: AssignmentStatus;
+}
+
+export interface TruckWithDetails extends CitizenTruck {
+  driver_name?: string;
 }
 
 export interface CreateTruckRequest {
