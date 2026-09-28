@@ -17,7 +17,7 @@ export const db = new Pool({ connectionString: DATABASE_URL });
 export const auth = createAppAuth({
   pool: db,
   secret: AUTH_SECRET,
-  baseURL: optionalEnv('BETTER_AUTH_URL', 'http://localhost:4000/api'),
+  baseURL: optionalEnv('BETTER_AUTH_URL', 'http://localhost:4000'),
 });
 
 const SLUG_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
