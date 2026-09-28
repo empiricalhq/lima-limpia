@@ -10,17 +10,24 @@ export interface NearbyTruck {
 }
 
 export class LocationRepository extends TenantRepository {
-  /** Keeps the current location and the history row in one transaction: both land or neither does. */
-  async recordTruckLocation(
-    scope: OrganizationScope,
-    truckId: string,
-    assignmentId: string,
-    location: LocationUpdate,
-  ): Promise<void> {
-    const params = [truckId, assignmentId, location.lat, location.lng, location.speed, location.heading];
-    await this.transaction(scope, async (tx) => {
+  /**
+   * Records the driver's location against their active assignment, or returns false when they have
+   * none. The assignment is read and locked in the same transaction as the writes, so it cannot
+   * complete in between, and the current location and the history row both land or neither does.
+   */
+  recordDriverLocation(scope: OrganizationScope, driverId: string, location: LocationUpdate): Promise<boolean> {
+    return this.transaction(scope, async (tx) => {
+      const { rows } = await tx.read<{ id: string; truck_id: string }>(LocationQueries.lockActiveAssignmentByDriverId, [
+        driverId,
+      ]);
+      const [assignment] = rows;
+      if (!assignment) {
+        return false;
+      }
+      const params = [assignment.truck_id, assignment.id, location.lat, location.lng, location.speed, location.heading];
       await tx.write(LocationQueries.upsertTruckCurrentLocation, params);
       await tx.write(LocationQueries.createTruckLocationHistory, params);
+      return true;
     });
   }
 

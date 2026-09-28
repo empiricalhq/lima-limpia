@@ -56,12 +56,10 @@ export class DriverService extends BaseService {
   }
 
   async updateLocation(scope: OrganizationScope, driverId: string, location: LocationUpdate): Promise<void> {
-    const assignment = await this.assignmentRepo.findActiveByDriverId(scope, driverId);
-    if (!assignment) {
+    const recorded = await this.locationRepo.recordDriverLocation(scope, driverId, location);
+    if (!recorded) {
       throw new ValidationError('No active assignment found for location update');
     }
-
-    await this.locationRepo.recordTruckLocation(scope, assignment.truck_id, assignment.id, location);
   }
 
   async reportIssue(scope: OrganizationScope, driverId: string, data: CreateDriverIssueRequest): Promise<void> {

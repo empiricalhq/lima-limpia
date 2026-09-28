@@ -2,6 +2,13 @@ import { tenantQuery } from '@/internal/shared/tenancy/tenant-query';
 import { distanceKmSql } from './distance';
 
 export const LocationQueries = {
+  // The share lock holds off a concurrent completion of the assignment until the location is written.
+  lockActiveAssignmentByDriverId: tenantQuery(`
+    SELECT ra.id, ra.truck_id FROM route_assignment ra
+    WHERE ra.driver_id = $1 AND ra.status = 'active' AND {{scope:ra}}
+    LIMIT 1
+    FOR SHARE OF ra
+  `),
   upsertTruckCurrentLocation: tenantQuery(`
     INSERT INTO truck_current_location (truck_id, organization_id, route_assignment_id, lat, lng, speed, heading, updated_at)
     VALUES ($1, {{organization_id}}, $2, $3, $4, $5, $6, NOW())
