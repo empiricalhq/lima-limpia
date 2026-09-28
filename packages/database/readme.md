@@ -50,6 +50,15 @@ it once per municipality; it is the only way to create one:
 bun --filter @lima-garbage/database setup:municipality
 ```
 
+Create an account for the platform support team with the interactive support
+script. The account is dedicated, so the script refuses an email that already
+has one. The role can only be granted and revoked here:
+
+```sh
+bun --filter @lima-garbage/database setup:support
+bun --filter @lima-garbage/database setup:support --revoke support@example.com
+```
+
 The seed script fills the oldest municipality, and there is nothing to copy into
 `.env`. Then run:
 

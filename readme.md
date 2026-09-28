@@ -37,13 +37,20 @@ development.
    bun --filter @lima-garbage/database setup:municipality
    ```
 
-5. Add sample trucks, users, a route, and an assignment if needed:
+5. Create an account for the platform support team if needed. Support reads
+   every municipality and changes data only by impersonating a user:
+
+   ```sh
+   bun --filter @lima-garbage/database setup:support
+   ```
+
+6. Add sample trucks, users, a route, and an assignment if needed:
 
    ```sh
    bun --filter @lima-garbage/database db:seed
    ```
 
-6. Start the API:
+7. Start the API:
 
    ```sh
    bun --filter @lima-garbage/api dev

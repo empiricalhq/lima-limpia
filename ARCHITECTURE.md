@@ -41,8 +41,8 @@ domains/<name>/
   models.ts        TypeScript types
 ```
 
-Not every domain has every file. `admin`, `auth`, `citizen`, `driver`, and
-`health` expose handlers. `trucks`, `routes`, `assignments`, `issues`, and
+Not every domain has every file. `admin`, `auth`, `citizen`, `driver`, `health`,
+and `support` expose handlers. `trucks`, `routes`, `assignments`, `issues`, and
 `locations` provide data used by those handlers.
 
 The container in `internal/container/container.ts` is the composition root. It
@@ -61,7 +61,8 @@ send the session cookie with protected requests.
 There are two role concepts:
 
 - `user.role` is Better Auth's global role, stored on the `user` table. It is
-  not the source of staff access checks.
+  not the source of staff access checks. It is where the platform `support` role
+  lives (see Platform support).
 - `member.role` is the role in the active organization, stored on the `member`
   table (one row per user per organization). Staff routes, and the web
   dashboard's own access checks, read this value. The current roles are `owner`,
@@ -73,13 +74,15 @@ One organization is one municipality. Several run on one deployment, each
 isolated from the others. Every fact that decides who sees what has one place
 and one actor that may change it:
 
-| Fact                                     | Stored in                      | Changed by                                                                                                                                                                                                    |
-| ---------------------------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| A municipality                           | `organization` row             | The operator, with `setup:municipality`. Nothing over HTTP creates one.                                                                                                                                       |
-| A staff member's role in a municipality  | `member.role`                  | An owner or admin of that municipality, or a supervisor for drivers, through `POST /api/admin/users` and `canManageRole`. The first owner is written by `setup:municipality`. No route changes it afterwards. |
-| The global role                          | `user.role`                    | The same writers as `member.role`, written together with it. Not read for staff checks. A self-registered citizen gets `citizen`.                                                                             |
-| The municipality a session works in      | `session.activeOrganizationId` | The user, through `organization/set-active`, and only among their own memberships.                                                                                                                            |
-| The municipality a domain row belongs to | `organization_id` on the row   | The API, from the caller's scope. No request body carries it.                                                                                                                                                 |
+| Fact                                     | Stored in                      | Changed by                                                                                                                                                                                                                         |
+| ---------------------------------------- | ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A municipality                           | `organization` row             | The operator, with `setup:municipality`. Nothing over HTTP creates one.                                                                                                                                                            |
+| A staff member's role in a municipality  | `member.role`                  | An owner or admin of that municipality, or a supervisor for drivers, through `POST /api/admin/users` and `canManageRole`. The first owner is written by `setup:municipality`. No route changes it afterwards.                      |
+| The global role                          | `user.role`                    | A staff role by `POST /api/admin/users`, together with `member.role`, and `owner` by `setup:municipality`. `citizen` by sign-up. `support` by `setup:support`. Not read for staff checks.                                          |
+| The municipality a session works in      | `session.activeOrganizationId` | The user, through `organization/set-active`, and only among their own memberships. An impersonated session cannot call it.                                                                                                         |
+| The municipality a domain row belongs to | `organization_id` on the row   | The API, from the caller's scope. No request body carries it.                                                                                                                                                                      |
+| The platform support role                | `user.role = 'support'`        | The operator, with `setup:support` to grant and `setup:support --revoke` to revoke. No HTTP route writes it.                                                                                                                       |
+| An impersonation                         | `session.impersonatedBy`       | A support user starts and stops it through `/api/support`. It ends by itself 15 minutes after it began. Its audit rows are in `support_audit`, which is never deleted from and only has `status_code` set after a write completes. |
 
 Ten domain tables carry a required `organization_id`: `truck`, `route`,
 `route_waypoint`, `route_schedule`, `route_assignment`, `driver_issue_report`,
@@ -117,9 +120,9 @@ collection.
 A role name alone never grants access to another municipality's data: owning any
 organization authorizes only that organization.
 
-No platform role exists, and the admin plugin's role set grants nothing, so no
-staff account reads more than one municipality. The only cross-municipality read
-is the citizens' view of active trucks.
+No staff account reads more than one municipality. The only cross-municipality
+reads are the citizens' view of active trucks and the platform support role's
+`/api/support` routes (see Platform support).
 
 Migration `0007_organization_tenancy` assigns existing rows to the only
 organization. It aborts, and changes nothing, when rows exist and the database
@@ -148,13 +151,13 @@ endpoint's `ac` grant one at a time is a dead end.
 `request-password-reset`, `reset-password`, the `GET reset-password/:token` link
 Better Auth's own password-reset email sends,
 `organization/get-active-member-role`, `organization/list`, and
-`organization/set-active`. Every other endpoint either plugin registers —
-`organization/create`, `update-member-role`, `invite-member`,
-`accept-invitation`, `get-full-organization`, and the `admin` plugin's own
-`set-role`, `create-user`, `ban-user`, `impersonate-user`, `remove-user`, and
-`set-user-password` — returns 404 before Better Auth's handler ever runs, so no
-caller can reach them with their own session regardless of role or plugin
-permission configuration.
+`organization/set-active`, which answers 403 to an impersonated session. Every
+other endpoint either plugin registers — `organization/create`,
+`update-member-role`, `invite-member`, `accept-invitation`,
+`get-full-organization`, and the `admin` plugin's own `set-role`, `create-user`,
+`ban-user`, `impersonate-user`, `remove-user`, and `set-user-password` — returns
+404 before Better Auth's handler ever runs, so no caller can reach them with
+their own session regardless of role or plugin permission configuration.
 
 This allowlist is exactly the set of `{method, path}` pairs `apps/web` and
 `apps/citizen` call today, not a broader guess at what Better Auth documents. A
@@ -172,10 +175,11 @@ APIs — see below):
 - `allowUserToCreateOrganization: false` on the `organization` plugin, so even a
   reachable `organization/create` could not let an authenticated user create a
   municipality. Only the operator does, with `setup:municipality`.
-- A separate, empty role set (`disabledAdminPluginRoles` in `roles.ts`) passed
-  to the `admin` plugin only, so none of its endpoints authorize for any role.
-  `appPluginRoles` is unchanged and still backs `requirePermission` and the
-  `organization` plugin.
+- A separate role set (`platformAdminPluginRoles` in `roles.ts`) passed to the
+  `admin` plugin only. Every municipality role has an empty set in it, and only
+  `support` grants anything (`user: ['impersonate']`). `appPluginRoles` still
+  backs `requirePermission` and the `organization` plugin, and grants no `ban`,
+  `impersonate`, `delete`, or `set-password`, which nothing in the API calls.
 
 `AdminService.createOrganizationUser` (called from `createUser` and
 `createDriver` in `apps/api/src/internal/domains/admin/service.ts`, through the
@@ -243,8 +247,10 @@ route, and assignment. It is a local script, not reachable over HTTP, and its
 fixture data (see `readme.md`) is not meant for production use.
 
 Citizens are authenticated users without an active organization. The citizen
-middleware rejects a session that has an active organization. Staff middleware
-requires an active organization, a membership in it, and an allowed member role.
+middleware rejects a session that has an active organization, and a session
+whose user has the `support` role, which has no organization either. Staff
+middleware requires an active organization, a membership in it, and an allowed
+member role.
 
 The web app checks access in its middleware and server actions by fetching
 `/api/auth/organization/get-active-member-role` for the current session cookie,
@@ -261,15 +267,114 @@ signing the user out.
 ```mermaid
 flowchart TD
     request[Protected request] --> apiAuth[API auth middleware]
-    apiAuth --> organization{Active organization?}
+    apiAuth --> impersonated{Impersonated session?}
+    impersonated -->|"older than 15 minutes, or impersonator no longer support"| refused[401]
+    impersonated -->|"yes, otherwise"| audit[Audit row before every write]
+    impersonated -->|no| organization
+    audit --> organization{Active organization?}
     organization -->|yes| staff[Staff route<br/>member.role check]
     organization -->|no| citizen[Citizen route]
     staff --> scope[OrganizationScope of the active organization]
     citizen --> global[allOrganizations for trucks<br/>unassigned or nearest municipality for reports]
+    apiAuth --> supportRoute[Support route<br/>own session, user.role support]
+    supportRoute --> supportScope[OrganizationScope named in the URL<br/>or the unassigned scope, reads only]
     scope --> rules[Business rules and database]
     global --> rules
+    supportScope --> rules
     webCheck[Web access checks] -. navigation only .-> request
 ```
+
+### Platform support
+
+The platform support team reads every municipality's data and tickets and
+changes anything only by impersonating a user. The role is `support`, stored in
+`user.role`. It is not an `AppRole`, `member_role_enum` cannot hold it, and a
+support account has no membership, so no staff check in any municipality passes
+for it. Support accounts are dedicated: `setup:support` refuses an email that
+already has an account, so a municipality user is never promoted.
+
+Only the operator changes the role. `setup:support` grants it, and
+`setup:support --revoke <email>` demotes the account to `citizen` and deletes
+its sessions. No HTTP route writes it: `POST /api/admin/users` accepts only
+`admin`, `supervisor`, and `driver`, `UpdateUserSchema` has no role, sign-up
+writes the `citizen` default, and the admin plugin's `set-role` and
+`create-user` are not mounted. A municipality owner or admin therefore can
+neither grant `support` nor impersonate.
+
+In the admin plugin's role set (`platformAdminPluginRoles`), `support` grants
+only `user: ['impersonate']`. The set lists every municipality role with no
+grants, because the plugin's `createUser` rejects a role missing from it.
+`adminRoles` is `['support']`, so the plugin also demands `impersonate-admins`
+to impersonate a support user, which no role has. The plugin's own
+`impersonate-user` and `stop-impersonating` endpoints stay unmounted: the app's
+routes below wrap them.
+
+**Reading.** `/api/support` is the support team's read surface. Every route on
+it is a GET except `POST /impersonate` and `POST /stop-impersonating`, and it
+must stay that way. Reads are not audited, so a GET handler must never call a
+repository write: that write would carry no audit row and no impersonator. The
+municipality reads (`/organizations/:organizationId/trucks`, `routes`,
+`routes/:id/waypoints`, `drivers`, `supervisors`, `members`, `issues`) call the
+admin service under an `organizationScope` built from the URL, after a check
+that the organization exists, so an unknown one is a 404. `/issues/unassigned`
+reads the reports no municipality owns under the unassigned scope, and
+`/citizens` finds a user with no membership by exact email, so support can find
+a citizen to impersonate. `/organizations` lists the municipalities. No route
+uses `allOrganizations`. The support middleware reads the role from the database
+on every request, so a revoked support user loses access at once.
+
+**Impersonating.** `POST /api/support/impersonate` with
+`{ userId, organizationId? }` starts a session as any user who is not a support
+user and not banned; citizens are included. A support user cannot be
+impersonated, and an impersonated session cannot start another impersonation.
+The session opens in one municipality, so the ordinary staff middleware scopes
+it exactly as it scopes the user: the user's only municipality, or
+`organizationId` for a user in several, which must be one of their memberships.
+A citizen's session has none. The start and the session's municipality are
+written in one transaction, and a failure deletes the new session. The session
+stays in that municipality: the `impersonation.start` row records it, and the
+middleware answers 401 to a request whose `activeOrganizationId` differs from
+the recorded one. `organization/set-active` answers 403 to an impersonated
+session.
+
+An impersonated session is in one of these states, and only these actors move
+it:
+
+| State    | Entered when                                                         | Effect                                                                                                 |
+| -------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| Active   | A support user calls `POST /api/support/impersonate`                 | The session acts as the impersonated user.                                                             |
+| Stopped  | The session calls `POST /api/support/stop-impersonating`             | Final. The session row is deleted and the support user's own session cookie returns.                   |
+| Expired  | 15 minutes pass from `session.createdAt`; the middleware notices     | Final. The middleware answers 401, whatever `expiresAt` says.                                          |
+| Disowned | The operator revokes the impersonator's role; the middleware notices | Final. The middleware answers 401, and the revoke has already deleted the impersonator's own sessions. |
+
+The 15 minutes are counted from `createdAt`, which never moves, and are never
+renewed. Better Auth extends `expiresAt` on use for a client that omits its
+`dont_remember` cookie, so `expiresAt` alone would not bound the session.
+
+An impersonated session may do what the impersonated user may do, with one
+exception: it cannot change a login. `AdminService.updateUser` answers 403, and
+leaves an audit row, when the request carries a password or a different email,
+so an impersonator cannot take over an account's login. Creating users, renaming
+them, and every other staff action stay allowed, and audited.
+
+**Audit.** `support_audit` holds one row per event: the action
+(`impersonation.start`, `impersonation.stop`, or `write`), the impersonator, the
+impersonated user, the municipality (null for a citizen), the session id, and
+for a write the HTTP method, the route pattern (`/api/admin/trucks/:id`), and
+the response status. Its foreign keys restrict deletion, so a user or
+municipality with history cannot be removed. Rows are never deleted, and only
+`status_code` is set, after the request has run. The start and stop rows are
+written by the support service. The stop row is written before the session ends,
+so a session never ends without a record; a stop whose session end fails leaves
+its row with no status. A write row is written by `admit` in
+`apps/api/src/internal/shared/middleware/auth.ts`, the single function through
+which the staff, permission, and citizen middleware set the request's caller.
+Every non-GET, HEAD, or OPTIONS request of an impersonated session gets its row
+before the handler runs, and a request whose row cannot be written does not run;
+the status is added afterwards. Reads are not recorded. The auth handler's
+`/api/auth/*` routes do not pass through `admit`. An impersonated session can
+sign out there, which changes no municipality data, and cannot switch
+municipality.
 
 ## Database ownership
 
