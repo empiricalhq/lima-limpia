@@ -18,7 +18,7 @@ afterAll(async () => {
 
 test('fails with a clear message when no organization exists yet', async () => {
   await db.query('TRUNCATE TABLE organization, "user" CASCADE');
-  await expect(getOrganizationId()).rejects.toThrow('setup:admin');
+  await expect(getOrganizationId()).rejects.toThrow('setup:municipality');
 });
 
 describe('creating a user', () => {
