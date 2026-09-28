@@ -47,6 +47,49 @@ class OverlapCountingDatabase extends Database {
   }
 }
 
+const COMPLETION_GRACE_MS = 250;
+
+/**
+ * Makes `database` start `complete` on another connection once a statement has read the assignment
+ * as active, whether that statement ran on the pool or on a client. A completion that has to wait
+ * for the reader's transaction is given a moment, then left running.
+ */
+function completeAfterActiveRead(database: Database, complete: () => Promise<unknown>) {
+  const race: { completion: Promise<unknown> | null } = { completion: null };
+
+  async function afterRead(text: string): Promise<void> {
+    const readsActiveAssignment = text.includes('FROM route_assignment') && text.includes("status = 'active'");
+    if (!readsActiveAssignment || race.completion) {
+      return;
+    }
+    race.completion = complete();
+    await Promise.race([race.completion, Bun.sleep(COMPLETION_GRACE_MS)]);
+  }
+
+  const poolQuery = database.query.bind(database);
+  database.query = (async (text: string, params?: unknown[]) => {
+    const result = await poolQuery(text, params);
+    await afterRead(text);
+    return result;
+  }) as Database['query'];
+
+  const getClient = database.getClient.bind(database);
+  database.getClient = async () => {
+    const client = await getClient();
+    const clientQuery = client.query.bind(client) as (...args: unknown[]) => Promise<unknown>;
+    client.query = (async (...args: unknown[]) => {
+      const result = await clientQuery(...args);
+      if (typeof args[0] === 'string') {
+        await afterRead(args[0]);
+      }
+      return result;
+    }) as PoolClient['query'];
+    return client;
+  };
+
+  return race;
+}
+
 const db = new OverlapCountingDatabase(loadConfig().database);
 const testDb = new TestDatabase();
 const driverService = new DriverService({
@@ -54,6 +97,17 @@ const driverService = new DriverService({
   routeRepo: new RouteRepository(db),
   issueRepo: new IssueRepository(db),
   locationRepo: new LocationRepository(db),
+});
+
+const racingDb = new Database(loadConfig().database);
+const race = completeAfterActiveRead(racingDb, () =>
+  db.query(`UPDATE route_assignment SET status = 'completed', actual_end_time = NOW() WHERE id = $1`, [ASSIGNMENT_ID]),
+);
+const racingService = new DriverService({
+  assignmentRepo: new AssignmentRepository(racingDb),
+  routeRepo: new RouteRepository(racingDb),
+  issueRepo: new IssueRepository(racingDb),
+  locationRepo: new LocationRepository(racingDb),
 });
 
 const ORGANIZATION_ID = 'driver-location-organization';
@@ -103,6 +157,7 @@ async function historyCount(): Promise<number> {
 
 beforeEach(async () => {
   db.overlappingQueries = 0;
+  race.completion = null;
   await testDb.clean();
   await db.query(
     `INSERT INTO "user" (id, name, email, role) VALUES ($1, 'Driver', 'driver-location@test.com', 'user')`,
@@ -143,6 +198,7 @@ afterEach(async () => {
 
 afterAll(async () => {
   await db.close();
+  await racingDb.close();
   await testDb.close();
 });
 
@@ -152,6 +208,16 @@ describe('DriverService.updateLocation', () => {
 
     expect(await currentLocation()).toEqual([{ lat: UPDATE.lat, lng: UPDATE.lng, speed: UPDATE.speed }]);
     expect(await historyCount()).toBe(1);
+  });
+
+  test('rejects the update and writes nothing when the driver has no active assignment', async () => {
+    await db.query(`UPDATE route_assignment SET status = 'completed' WHERE id = $1`, [ASSIGNMENT_ID]);
+
+    const error = await updateLocationError();
+
+    expect(error.message).toContain('No active assignment');
+    expect(await currentLocation()).toEqual([{ lat: PREVIOUS.lat, lng: PREVIOUS.lng, speed: null }]);
+    expect(await historyCount()).toBe(0);
   });
 
   test('never queries a pg client that is still running a query', async () => {
@@ -179,5 +245,22 @@ describe('DriverService.updateLocation', () => {
     expect(error.message).not.toContain('current transaction is aborted');
     expect(await currentLocation()).toEqual([{ lat: PREVIOUS.lat, lng: PREVIOUS.lng, speed: null }]);
     expect(await historyCount()).toBe(0);
+  });
+});
+
+describe('DriverService.updateLocation while the assignment completes', () => {
+  test('records no location after the assignment ended', async () => {
+    await racingService.updateLocation(SCOPE, DRIVER_ID, UPDATE);
+    await race.completion;
+
+    const { rows } = await db.query<{ status: string; late: number }>(
+      `SELECT ra.status, COUNT(h.id) FILTER (WHERE h.recorded_at > ra.actual_end_time)::int AS late
+       FROM route_assignment ra
+       LEFT JOIN truck_location_history h ON h.route_assignment_id = ra.id
+       WHERE ra.id = $1
+       GROUP BY ra.id`,
+      [ASSIGNMENT_ID],
+    );
+    expect(rows).toEqual([{ status: 'completed', late: 0 }]);
   });
 });
