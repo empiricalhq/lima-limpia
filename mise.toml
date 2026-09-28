@@ -3,3 +3,36 @@ monorepo_root = true
 [tools]
 bun = "1.4.2"
 biome = "2.5.14"
+node = "24.21.0"
+
+# The check tasks mirror .github/workflows/checks.yml and api-tests.yml.
+[tasks."check:format"]
+description = "Check formatting"
+run = "bun run format:check"
+
+[tasks."check:lint"]
+description = "Lint"
+run = "bun run lint"
+
+[tasks."check:typecheck"]
+description = "Typecheck every workspace"
+run = "bun run typecheck"
+
+[tasks."check:web-build"]
+description = "Build the web app"
+run = "bun --filter @lima-garbage/web build"
+env = { API_BASE_URL = "http://localhost:4000", NEXT_PUBLIC_BASE_URL = "http://localhost:3000" }
+
+# The tests wipe the database in .env.test, so it must be one that is safe to lose.
+[tasks."check:test"]
+description = "Migrate the test database, then run the API and database tests"
+run = """
+set -e
+(cd packages/database && bun --env-file=../../.env.test run db:migrate)
+(cd apps/api && bun run test)
+(cd packages/database && bun run test)
+"""
+
+[tasks.check]
+description = "Everything CI checks"
+depends = ["check:format", "check:lint", "check:typecheck", "check:web-build", "check:test"]
