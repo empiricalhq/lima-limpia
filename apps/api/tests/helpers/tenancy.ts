@@ -75,6 +75,13 @@ export class Tenancy {
     return { id, email, headers: { Cookie: await this.activate(await this.signIn(email), organizationId) } };
   }
 
+  /** The one direct write, like membership: no route grants the platform role, by design. */
+  async createSupport(email: string): Promise<Person> {
+    const id = await this.signUp(email);
+    await this.db.query(`UPDATE "user" SET role = 'support' WHERE id = $1`, [id]);
+    return { id, email, headers: { Cookie: await this.signIn(email) } };
+  }
+
   async addMember(userId: string, organizationId: string, role: string): Promise<void> {
     await this.db.query(
       'INSERT INTO member (id, "userId", "organizationId", role) VALUES (gen_random_uuid(), $1, $2, $3)',
