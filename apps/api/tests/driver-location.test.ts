@@ -3,9 +3,11 @@ import type { PoolClient } from 'pg';
 import { AssignmentRepository } from '@/internal/domains/assignments/repository';
 import { DriverService } from '@/internal/domains/driver/service';
 import { IssueRepository } from '@/internal/domains/issues/repository';
+import { LocationRepository } from '@/internal/domains/locations/repository';
 import { RouteRepository } from '@/internal/domains/routes/repository';
 import { loadConfig } from '@/internal/shared/config/config';
 import { Database } from '@/internal/shared/database/database';
+import { organizationScope } from '@/internal/shared/tenancy/scope';
 import { Database as TestDatabase } from './helpers/database';
 
 /**
@@ -47,13 +49,15 @@ class OverlapCountingDatabase extends Database {
 
 const db = new OverlapCountingDatabase(loadConfig().database);
 const testDb = new TestDatabase();
-const driverService = new DriverService(
-  new AssignmentRepository(db),
-  new RouteRepository(db),
-  new IssueRepository(db),
-  db,
-);
+const driverService = new DriverService({
+  assignmentRepo: new AssignmentRepository(db),
+  routeRepo: new RouteRepository(db),
+  issueRepo: new IssueRepository(db),
+  locationRepo: new LocationRepository(db),
+});
 
+const ORGANIZATION_ID = 'driver-location-organization';
+const SCOPE = organizationScope(ORGANIZATION_ID);
 const DRIVER_ID = 'driver-location-user';
 const TRUCK_ID = 'driver-location-truck';
 const ASSIGNMENT_ID = 'driver-location-assignment';
@@ -77,7 +81,7 @@ async function dropRejection(table: string): Promise<void> {
 
 async function updateLocationError(): Promise<Error> {
   try {
-    await driverService.updateLocation(DRIVER_ID, UPDATE);
+    await driverService.updateLocation(SCOPE, DRIVER_ID, UPDATE);
   } catch (error) {
     return error as Error;
   }
@@ -104,21 +108,31 @@ beforeEach(async () => {
     `INSERT INTO "user" (id, name, email, role) VALUES ($1, 'Driver', 'driver-location@test.com', 'user')`,
     [DRIVER_ID],
   );
-  await db.query(`INSERT INTO truck (id, name, license_plate) VALUES ($1, 'Truck', 'LOC-001')`, [TRUCK_ID]);
+  await db.query(`INSERT INTO organization (id, name, slug) VALUES ($1, 'Municipality', 'driver-location-org')`, [
+    ORGANIZATION_ID,
+  ]);
   await db.query(
-    `INSERT INTO route (id, name, start_lat, start_lng, estimated_duration_minutes, created_by)
-     VALUES ('driver-location-route', 'Route', 0, 0, 60, $1)`,
-    [DRIVER_ID],
+    `INSERT INTO member (id, "userId", "organizationId", role) VALUES ('driver-location-member', $1, $2, 'driver')`,
+    [DRIVER_ID, ORGANIZATION_ID],
+  );
+  await db.query(`INSERT INTO truck (id, organization_id, name, license_plate) VALUES ($1, $2, 'Truck', 'LOC-001')`, [
+    TRUCK_ID,
+    ORGANIZATION_ID,
+  ]);
+  await db.query(
+    `INSERT INTO route (id, organization_id, name, start_lat, start_lng, estimated_duration_minutes, created_by)
+     VALUES ('driver-location-route', $2, 'Route', 0, 0, 60, $1)`,
+    [DRIVER_ID, ORGANIZATION_ID],
   );
   await db.query(
     `INSERT INTO route_assignment
-       (id, route_id, truck_id, driver_id, assigned_date, scheduled_start_time, scheduled_end_time, status, assigned_by)
-     VALUES ($1, 'driver-location-route', $2, $3, CURRENT_DATE, NOW(), NOW() + INTERVAL '1 hour', 'active', $3)`,
-    [ASSIGNMENT_ID, TRUCK_ID, DRIVER_ID],
+       (id, organization_id, route_id, truck_id, driver_id, assigned_date, scheduled_start_time, scheduled_end_time, status, assigned_by)
+     VALUES ($1, $4, 'driver-location-route', $2, $3, CURRENT_DATE, NOW(), NOW() + INTERVAL '1 hour', 'active', $3)`,
+    [ASSIGNMENT_ID, TRUCK_ID, DRIVER_ID, ORGANIZATION_ID],
   );
   await db.query(
-    'INSERT INTO truck_current_location (truck_id, route_assignment_id, lat, lng) VALUES ($1, $2, $3, $4)',
-    [TRUCK_ID, ASSIGNMENT_ID, PREVIOUS.lat, PREVIOUS.lng],
+    'INSERT INTO truck_current_location (truck_id, organization_id, route_assignment_id, lat, lng) VALUES ($1, $5, $2, $3, $4)',
+    [TRUCK_ID, ASSIGNMENT_ID, PREVIOUS.lat, PREVIOUS.lng, ORGANIZATION_ID],
   );
 });
 
@@ -134,14 +148,14 @@ afterAll(async () => {
 
 describe('DriverService.updateLocation', () => {
   test('writes the current location and one history row', async () => {
-    await driverService.updateLocation(DRIVER_ID, UPDATE);
+    await driverService.updateLocation(SCOPE, DRIVER_ID, UPDATE);
 
     expect(await currentLocation()).toEqual([{ lat: UPDATE.lat, lng: UPDATE.lng, speed: UPDATE.speed }]);
     expect(await historyCount()).toBe(1);
   });
 
   test('never queries a pg client that is still running a query', async () => {
-    await driverService.updateLocation(DRIVER_ID, UPDATE);
+    await driverService.updateLocation(SCOPE, DRIVER_ID, UPDATE);
 
     expect(db.overlappingQueries).toBe(0);
   });

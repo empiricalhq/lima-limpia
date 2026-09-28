@@ -40,7 +40,8 @@ describe('Citizen API', () => {
       );
       const truckId = truckRes.data.data.id;
       await baseTest.ctx.db.query(
-        'INSERT INTO truck_current_location (truck_id, lat, lng) VALUES ($1, -12.05, -77.05)',
+        `INSERT INTO truck_current_location (truck_id, organization_id, lat, lng)
+         SELECT id, organization_id, -12.05, -77.05 FROM truck WHERE id = $1`,
         [truckId],
       );
 
