@@ -30,10 +30,11 @@ development.
    bun --filter @lima-garbage/database db:push
    ```
 
-4. Create the first organization owner:
+4. Create a municipality and its first owner. Run it again for each
+   municipality:
 
    ```sh
-   bun --filter @lima-garbage/database setup:admin
+   bun --filter @lima-garbage/database setup:municipality
    ```
 
 5. Add sample trucks, users, a route, and an assignment if needed:
@@ -60,15 +61,15 @@ The web app expects `API_BASE_URL=http://localhost:4000`. See
 
 ## Repository layout
 
-| Path | Purpose |
-| --- | --- |
-| [`apps/api`](apps/api) | Hono API. It owns authentication, business rules, and database writes. |
-| [`apps/web`](apps/web) | Next.js dashboard for municipal staff. Server actions call the API. |
-| [`apps/citizen`](apps/citizen) | Expo app for citizens. It shows trucks, handles reports, and stores the session in secure storage. |
-| [`apps/server`](apps/server) | `json-server` prototype. It is not part of the production data flow. |
-| [`packages/database`](packages/database) | Drizzle schema, migrations, and database tooling. |
-| [`packages/email`](packages/email) | React Email templates used by the API. |
-| [`datasets`](datasets) | Marimo notebooks for public waste and population datasets. |
+| Path                                     | Purpose                                                                                            |
+| ---------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| [`apps/api`](apps/api)                   | Hono API. It owns authentication, business rules, and database writes.                             |
+| [`apps/web`](apps/web)                   | Next.js dashboard for municipal staff. Server actions call the API.                                |
+| [`apps/citizen`](apps/citizen)           | Expo app for citizens. It shows trucks, handles reports, and stores the session in secure storage. |
+| [`apps/server`](apps/server)             | `json-server` prototype. It is not part of the production data flow.                               |
+| [`packages/database`](packages/database) | Drizzle schema, migrations, and database tooling.                                                  |
+| [`packages/email`](packages/email)       | React Email templates used by the API.                                                             |
+| [`datasets`](datasets)                   | Marimo notebooks for public waste and population datasets.                                         |
 
 The runtime data flow and package boundaries are shown in
 [`ARCHITECTURE.md`](ARCHITECTURE.md).

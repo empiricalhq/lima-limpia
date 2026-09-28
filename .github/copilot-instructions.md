@@ -209,7 +209,7 @@ the database as it has already been done.
 
 ```
 bun run db:push
-bun run setup:admin
+bun run setup:municipality
 bun run db:seed
 ```
 

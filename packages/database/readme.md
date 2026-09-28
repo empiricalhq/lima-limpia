@@ -43,14 +43,15 @@ bun --filter @lima-garbage/database db:push:test
 bun --filter @lima-garbage/database db:studio
 ```
 
-Create the first organization owner with the interactive setup script:
+Create a municipality and its first owner with the interactive setup script. Run
+it once per municipality; it is the only way to create one:
 
 ```sh
-bun --filter @lima-garbage/database setup:admin
+bun --filter @lima-garbage/database setup:municipality
 ```
 
-The seed script needs the organization this creates, and there is nothing to
-copy into `.env`. Then run:
+The seed script fills the oldest municipality, and there is nothing to copy into
+`.env`. Then run:
 
 ```sh
 bun --filter @lima-garbage/database db:seed
