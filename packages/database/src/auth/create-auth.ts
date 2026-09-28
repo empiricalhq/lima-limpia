@@ -1,7 +1,13 @@
 import { betterAuth } from 'better-auth';
 import { admin, organization } from 'better-auth/plugins';
 import type { Pool } from 'pg';
-import { appAc, appPluginRoles, disabledAdminPluginRoles } from './roles.ts';
+import {
+  appAc,
+  appPluginRoles,
+  IMPERSONATION_SESSION_SECONDS,
+  PlatformRoles,
+  platformAdminPluginRoles,
+} from './roles.ts';
 
 export interface CreateAppAuthOptions {
   pool: Pool;
@@ -13,9 +19,9 @@ export interface CreateAppAuthOptions {
 
 /**
  * The one Better Auth configuration every user-creating entry point uses: the API server, the
- * seed script, and the bootstrap-owner script. `admin`'s `roles` stays `disabledAdminPluginRoles`
- * everywhere, not just in the API: none of these callers ever call the admin plugin's endpoints
- * over HTTP with a caller's session, so no role needs a grant there (see ARCHITECTURE.md).
+ * seed script, and the operator's setup scripts. `admin`'s `roles` is `platformAdminPluginRoles`
+ * everywhere: only the support role holds a grant there, and only the API's support routes call
+ * the plugin with a caller's session (see ARCHITECTURE.md).
  */
 export function createAppAuth(options: CreateAppAuthOptions) {
   return betterAuth({
@@ -37,8 +43,10 @@ export function createAppAuth(options: CreateAppAuthOptions) {
       }),
       admin({
         ac: appAc,
-        roles: disabledAdminPluginRoles,
+        roles: platformAdminPluginRoles,
+        adminRoles: [PlatformRoles.SUPPORT],
         defaultRole: 'citizen',
+        impersonationSessionDuration: IMPERSONATION_SESSION_SECONDS,
       }),
     ],
   });

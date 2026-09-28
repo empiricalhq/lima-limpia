@@ -14,6 +14,7 @@ export * from './communications.ts';
 export * from './issues.ts';
 export * from './locations.ts';
 export * from './routes.ts';
+export * from './support.ts';
 export * from './trucks.ts';
 
 export const userRelations = relations(user, ({ many, one }) => ({
