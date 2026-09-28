@@ -10,6 +10,7 @@ const DEFAULT_START_HOUR = 8;
 
 interface AssignmentSeed {
   dbClient: PoolClient;
+  organizationId: string;
   truckId: string;
   routeId: string;
   driverId: string;
@@ -56,12 +57,15 @@ const seedData = {
   ],
 };
 
-/** Every non-citizen seed user joins the organization `setup:admin` bootstrapped; a citizen never has one, same as a self-registered citizen. */
+/**
+ * The seed fills the oldest municipality: every non-citizen seed user joins it and every seeded
+ * truck, route and assignment belongs to it. A citizen never has one, same as a self-registered citizen.
+ */
 export async function getOrganizationId(): Promise<string> {
-  const { rows } = await db.query('SELECT id FROM organization LIMIT 1');
+  const { rows } = await db.query('SELECT id FROM organization ORDER BY "createdAt", id LIMIT 1');
   const organizationId = rows[0]?.id;
   if (!organizationId) {
-    throw new Error('No existe ninguna organización. Ejecuta "setup:admin" antes de sembrar datos.');
+    throw new Error('No existe ninguna municipalidad. Ejecuta "setup:municipality" antes de sembrar datos.');
   }
   return organizationId;
 }
@@ -76,28 +80,40 @@ export function ensureUser(organizationId: string, u: (typeof seedUsers)[number]
   );
 }
 
-async function ensureTruck(dbClient: PoolClient, t: (typeof seedData.trucks)[number]) {
-  const { rows } = await dbClient.query('SELECT id FROM truck WHERE license_plate=$1', [t.licensePlate]);
+async function ensureTruck(dbClient: PoolClient, organizationId: string, t: (typeof seedData.trucks)[number]) {
+  const { rows } = await dbClient.query('SELECT id FROM truck WHERE organization_id=$1 AND license_plate=$2', [
+    organizationId,
+    t.licensePlate,
+  ]);
   if (rows.length > 0) {
     return rows[0].id;
   }
   const id = createId();
-  await dbClient.query('INSERT INTO truck (id,name,license_plate) VALUES ($1,$2,$3)', [id, t.name, t.licensePlate]);
+  await dbClient.query('INSERT INTO truck (id,organization_id,name,license_plate) VALUES ($1,$2,$3,$4)', [
+    id,
+    organizationId,
+    t.name,
+    t.licensePlate,
+  ]);
   return id;
 }
 
-async function ensureRoute(dbClient: PoolClient, supervisorId: string) {
+async function ensureRoute(dbClient: PoolClient, organizationId: string, supervisorId: string) {
   const { route, waypoints } = seedData;
-  const { rows } = await dbClient.query('SELECT id FROM route WHERE name=$1', [route.name]);
+  const { rows } = await dbClient.query('SELECT id FROM route WHERE organization_id=$1 AND name=$2', [
+    organizationId,
+    route.name,
+  ]);
   if (rows.length > 0) {
     return rows[0].id;
   }
 
   const routeId = createId();
   await dbClient.query(
-    'INSERT INTO route (id,name,description,start_lat,start_lng,estimated_duration_minutes,created_by) VALUES ($1,$2,$3,$4,$5,$6,$7)',
+    'INSERT INTO route (id,organization_id,name,description,start_lat,start_lng,estimated_duration_minutes,created_by) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)',
     [
       routeId,
+      organizationId,
       route.name,
       route.description,
       route.startLat,
@@ -108,10 +124,11 @@ async function ensureRoute(dbClient: PoolClient, supervisorId: string) {
   );
 
   await dbClient.query(
-    `INSERT INTO route_waypoint (id,route_id,sequence_order,lat,lng,estimated_arrival_offset_minutes,street_name)
-     SELECT * FROM UNNEST($1::text[],$2::text[],$3::int[],$4::float8[],$5::float8[],$6::int[],$7::text[])`,
+    `INSERT INTO route_waypoint (id,organization_id,route_id,sequence_order,lat,lng,estimated_arrival_offset_minutes,street_name)
+     SELECT * FROM UNNEST($1::text[],$2::text[],$3::text[],$4::int[],$5::float8[],$6::float8[],$7::int[],$8::text[])`,
     [
       waypoints.map(() => createId()),
+      waypoints.map(() => organizationId),
       waypoints.map(() => routeId),
       waypoints.map((wp) => wp.order),
       waypoints.map((wp) => wp.lat),
@@ -126,6 +143,7 @@ async function ensureRoute(dbClient: PoolClient, supervisorId: string) {
 
 async function ensureAssignment({
   dbClient,
+  organizationId,
   truckId,
   routeId,
   driverId,
@@ -134,10 +152,10 @@ async function ensureAssignment({
   durationMinutes,
 }: AssignmentSeed) {
   const [today] = new Date().toISOString().split('T');
-  const { rows } = await dbClient.query('SELECT id FROM route_assignment WHERE truck_id=$1 AND assigned_date=$2', [
-    truckId,
-    today,
-  ]);
+  const { rows } = await dbClient.query(
+    'SELECT id FROM route_assignment WHERE organization_id=$1 AND truck_id=$2 AND assigned_date=$3',
+    [organizationId, truckId, today],
+  );
   if (rows.length > 0) {
     return;
   }
@@ -147,8 +165,8 @@ async function ensureAssignment({
   const end = new Date(start.getTime() + durationMinutes * MILLISECONDS_PER_MINUTE);
 
   await dbClient.query(
-    'INSERT INTO route_assignment (id,route_id,truck_id,driver_id,assigned_date,scheduled_start_time,scheduled_end_time,assigned_by) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)',
-    [createId(), routeId, truckId, driverId, today, start, end, supervisorId],
+    'INSERT INTO route_assignment (id,organization_id,route_id,truck_id,driver_id,assigned_date,scheduled_start_time,scheduled_end_time,assigned_by) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)',
+    [createId(), organizationId, routeId, truckId, driverId, today, start, end, supervisorId],
   );
 }
 
@@ -161,24 +179,30 @@ async function createSeedUsers(organizationId: string) {
   return users;
 }
 
-async function seedDatabase(client: PoolClient, supervisor: { id: string }, driver: { id: string }) {
+async function seedDatabase(
+  client: PoolClient,
+  organizationId: string,
+  supervisor: { id: string },
+  driver: { id: string },
+) {
   const s = spinner();
 
   s.start('Creando camiones...');
   const truckIds: string[] = [];
   for (const t of seedData.trucks) {
     // biome-ignore lint/performance/noAwaitInLoops: ensureTruck runs on the shared transaction client, so these must not run concurrently.
-    truckIds.push(await ensureTruck(client, t));
+    truckIds.push(await ensureTruck(client, organizationId, t));
   }
   s.stop('Camiones listos.');
 
   s.start('Creando ruta y waypoints...');
-  const routeId = await ensureRoute(client, supervisor.id);
+  const routeId = await ensureRoute(client, organizationId, supervisor.id);
   s.stop('Ruta lista.');
 
   s.start('Creando asignaciones...');
   await ensureAssignment({
     dbClient: client,
+    organizationId,
     // biome-ignore lint/style/noNonNullAssertion: seedData.trucks is a fixed, non-empty literal.
     truckId: truckIds[0]!,
     routeId,
@@ -207,7 +231,7 @@ async function main() {
     }
 
     await client.query('BEGIN');
-    await seedDatabase(client, supervisor, driver);
+    await seedDatabase(client, organizationId, supervisor, driver);
     await client.query('COMMIT');
 
     outro(color.green('Datos de ejemplo añadidos correctamente.'));

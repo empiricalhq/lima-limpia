@@ -20,14 +20,31 @@ export const auth = createAppAuth({
   baseURL: optionalEnv('BETTER_AUTH_URL', 'http://localhost:4000/api'),
 });
 
-export async function checkExistingOrganization(): Promise<boolean> {
-  const { rows } = await db.query(`SELECT 1 FROM "organization" LIMIT 1`);
-  return rows.length > 0;
-}
+const SLUG_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 async function collectUserInput() {
   return await group(
     {
+      municipalityName: () =>
+        text({
+          message: 'Nombre de la municipalidad:',
+          placeholder: 'Ejemplo: Municipalidad de Miraflores',
+          validate: (value) => {
+            if ((value ?? '').trim().length < MIN_NAME_LENGTH) {
+              return `Escribe el nombre de la municipalidad (mínimo ${MIN_NAME_LENGTH} caracteres).`;
+            }
+          },
+        }),
+      municipalitySlug: () =>
+        text({
+          message: 'Identificador único de la municipalidad (slug):',
+          placeholder: 'Ejemplo: miraflores',
+          validate: (value) => {
+            if (!SLUG_REGEX.test(value ?? '')) {
+              return 'Usa solo minúsculas, números y guiones, por ejemplo "miraflores".';
+            }
+          },
+        }),
       name: () =>
         text({
           message: 'Nombre completo del propietario:',
@@ -68,7 +85,10 @@ async function collectUserInput() {
 }
 
 /**
- * Creates the owner through the admin plugin's `createUser`, not `signUpEmail`, so `user.role`
+ * Creates one municipality (an organization) and its first owner. Every municipality starts this
+ * way: `allowUserToCreateOrganization` is off, so no HTTP caller can create one.
+ *
+ * The owner is created through the admin plugin's `createUser`, not `signUpEmail`, so `user.role`
  * lands on `'owner'` (an `AppRole`) instead of the default `'user'`. The organization and its
  * owner membership are then written directly, in one transaction, rather than through Better
  * Auth's `createOrganization`: that endpoint runs on Better Auth's own connection, which cannot
@@ -76,6 +96,8 @@ async function collectUserInput() {
  * same way `insertMember` writes a staff member's row (see ARCHITECTURE.md).
  */
 export async function bootstrapOwner(input: {
+  municipalityName: string;
+  municipalitySlug: string;
   name: string;
   email: string;
   password: string;
@@ -89,8 +111,8 @@ export async function bootstrapOwner(input: {
     await withTransaction(db, async (client) => {
       await client.query('INSERT INTO organization (id, name, slug) VALUES ($1, $2, $3)', [
         organizationId,
-        'Lima Limpia',
-        'lima-limpia',
+        input.municipalityName.trim(),
+        input.municipalitySlug,
       ]);
       await insertMember(client, { userId: user.id, organizationId, role: 'owner' });
     });
@@ -107,15 +129,17 @@ function displaySuccessMessage(email: string, userPassword: string) {
 ${color.green(`Correo: ${email}`)}
 ${color.green(`Contraseña: ${userPassword}`)}
 `;
-  note(noteMessage, 'Propietario de la organización:');
+  note(noteMessage, 'Propietario de la municipalidad:');
   outro(color.green('Configurado correctamente. Ya puedes iniciar sesión con esta cuenta.'));
 }
 
 function handleError(error: unknown) {
-  log.error('No se pudo configurar la organización y el propietario.');
+  log.error('No se pudo configurar la municipalidad y el propietario.');
 
   if (error instanceof Error) {
-    if (error.message.includes('unique constraint')) {
+    if (error.message.includes('organization_slug_unique')) {
+      log.warn('Ya existe una municipalidad con este identificador.');
+    } else if (error.message.includes('unique constraint')) {
       log.warn('Ya existe un usuario con este correo electrónico en la base de datos.');
     } else {
       log.error(error.message);
@@ -127,26 +151,15 @@ function handleError(error: unknown) {
 }
 
 async function main() {
-  intro(color.inverse(' @packages/database: creación de organización y propietario '));
+  intro(color.inverse(' @packages/database: creación de municipalidad y propietario '));
 
   try {
-    const s = spinner();
-    s.start('Revisando si ya existe una organización...');
-    const hasOrganization = await checkExistingOrganization();
-    s.stop('Revisión completada.');
-
-    if (hasOrganization) {
-      log.warn('Ya existe una organización.');
-      outro('Este script solo puede crear la primera organización y su propietario.');
-      return;
-    }
-
     const userInput = await collectUserInput();
 
     const creating = spinner();
-    creating.start('Creando usuario propietario y organización principal...');
+    creating.start('Creando usuario propietario y municipalidad...');
     await bootstrapOwner(userInput);
-    creating.stop('Propietario y organización creados.');
+    creating.stop('Propietario y municipalidad creados.');
 
     displaySuccessMessage(userInput.email, userInput.password);
   } catch (error: unknown) {

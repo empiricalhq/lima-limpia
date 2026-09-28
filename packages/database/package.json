@@ -8,10 +8,10 @@
   "scripts": {
     "db:generate": "drizzle-kit generate --config ./drizzle.config.ts && biome format --write ./migrations",
     "db:push": "bun --env-file=../../.env drizzle-kit push --config ./drizzle.config.ts --force",
-    "setup:admin": "bun --env-file=../../.env scripts/create-admin.ts",
+    "setup:municipality": "bun --env-file=../../.env scripts/create-municipality.ts",
     "db:seed": "bun --env-file=../../.env scripts/seed.ts",
     "db:push:test": "bun --env-file=../../.env.test drizzle-kit push --config ./drizzle.config.ts --force",
-    "setup:admin:test": "bun --env-file=../../.env.test scripts/create-admin.ts",
+    "setup:municipality:test": "bun --env-file=../../.env.test scripts/create-municipality.ts",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
     "test": "bun --env-file=../../.env.test test scripts",
