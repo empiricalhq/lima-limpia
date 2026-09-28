@@ -1,5 +1,5 @@
-import { doublePrecision, index, pgEnum, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
-import { user } from './auth.ts';
+import { doublePrecision, foreignKey, index, pgEnum, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { organization, user } from './auth.ts';
 import { routeAssignment } from './routes.ts';
 import { truck } from './trucks.ts';
 
@@ -14,12 +14,27 @@ export const systemAlert = pgTable(
     type: alertTypeEnum('type').notNull(),
     message: text('message').notNull(),
     status: alertStatusEnum('status').default('unread').notNull(),
-    routeAssignmentId: text('route_assignment_id').references(() => routeAssignment.id, { onDelete: 'set null' }),
-    truckId: text('truck_id').references(() => truck.id, { onDelete: 'set null' }),
+    organizationId: text('organization_id')
+      .notNull()
+      .references(() => organization.id, { onDelete: 'restrict' }),
+    routeAssignmentId: text('route_assignment_id'),
+    truckId: text('truck_id'),
     driverId: text('driver_id').references(() => user.id, { onDelete: 'set null' }),
     createdAt: timestamp('created_at').defaultNow().notNull(),
   },
   (table) => [
+    // A composite SET NULL would also null organization_id, so a referenced assignment or truck cannot be deleted.
+    foreignKey({
+      name: 'system_alert_assignment_organization_fk',
+      columns: [table.routeAssignmentId, table.organizationId],
+      foreignColumns: [routeAssignment.id, routeAssignment.organizationId],
+    }).onDelete('restrict'),
+    foreignKey({
+      name: 'system_alert_truck_organization_fk',
+      columns: [table.truckId, table.organizationId],
+      foreignColumns: [truck.id, truck.organizationId],
+    }).onDelete('restrict'),
+    index('system_alert_organization_idx').on(table.organizationId),
     index('system_alert_status_idx').on(table.status),
     index('system_alert_created_at_idx').on(table.createdAt),
   ],
@@ -32,9 +47,8 @@ export const driverIssueReport = pgTable(
     driverId: text('driver_id')
       .notNull()
       .references(() => user.id, { onDelete: 'cascade' }),
-    routeAssignmentId: text('route_assignment_id')
-      .notNull()
-      .references(() => routeAssignment.id, { onDelete: 'cascade' }),
+    routeAssignmentId: text('route_assignment_id').notNull(),
+    organizationId: text('organization_id').notNull(),
     type: text('type').notNull(),
     status: issueStatusEnum('status').default('open').notNull(),
     notes: text('notes'),
@@ -44,6 +58,12 @@ export const driverIssueReport = pgTable(
     resolvedAt: timestamp('resolved_at'),
   },
   (table) => [
+    foreignKey({
+      name: 'driver_issue_report_assignment_organization_fk',
+      columns: [table.routeAssignmentId, table.organizationId],
+      foreignColumns: [routeAssignment.id, routeAssignment.organizationId],
+    }).onDelete('cascade'),
+    index('driver_issue_report_organization_idx').on(table.organizationId),
     index('driver_issue_report_status_idx').on(table.status),
     index('driver_issue_report_driver_idx').on(table.driverId),
   ],
@@ -56,6 +76,8 @@ export const citizenIssueReport = pgTable(
     userId: text('user_id')
       .notNull()
       .references(() => user.id, { onDelete: 'cascade' }),
+    // Null until a municipality receives the report; see the citizen report routing in ARCHITECTURE.md.
+    organizationId: text('organization_id').references(() => organization.id, { onDelete: 'restrict' }),
     type: text('type').notNull(),
     status: issueStatusEnum('status').default('open').notNull(),
     description: text('description'),
@@ -69,6 +91,7 @@ export const citizenIssueReport = pgTable(
       .$onUpdate(() => new Date()),
   },
   (table) => [
+    index('citizen_issue_report_organization_idx').on(table.organizationId),
     index('citizen_issue_report_status_idx').on(table.status),
     index('citizen_issue_report_type_idx').on(table.type),
     index('citizen_issue_report_user_idx').on(table.userId),

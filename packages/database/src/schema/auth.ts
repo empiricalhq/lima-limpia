@@ -1,4 +1,4 @@
-import { boolean, index, jsonb, pgEnum, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
+import { boolean, index, jsonb, pgEnum, pgTable, text, timestamp, unique, uniqueIndex } from 'drizzle-orm/pg-core';
 
 export const memberRoleEnum = pgEnum('member_role_enum', ['admin', 'supervisor', 'driver', 'owner']);
 
@@ -112,7 +112,13 @@ export const member = pgTable(
     role: memberRoleEnum('role').notNull(),
     createdAt: timestamp('createdAt', { withTimezone: true, mode: 'date' }).defaultNow().notNull(),
   },
-  (table) => [uniqueIndex('member_organization_user_uidx').on(table.organizationId, table.userId)],
+  (table) => [
+    // Composite foreign keys reference this pair. A constraint is created with its table, so
+    // `drizzle-kit push` can add those keys on an empty database; a unique index is created after
+    // them. The columns follow the table's column order, or push sees the constraint as changed.
+    unique('member_organization_user_uidx').on(table.userId, table.organizationId),
+    index('member_organization_idx').on(table.organizationId),
+  ],
 );
 
 export const invitation = pgTable('invitation', {

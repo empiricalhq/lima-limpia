@@ -50,6 +50,13 @@
       "when": 1790543005758,
       "tag": "0006_ancient_thing",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1790555749184,
+      "tag": "0007_organization_tenancy",
+      "breakpoints": true
     }
   ]
 }
