@@ -1,115 +1,125 @@
 # Lima Limpia
 
-Lima Limpia is a waste-collection system for Peru. It gives municipal teams a
-view of routes and trucks, and gives citizens a way to check truck locations and
-report collection problems.
+Lima Limpia is a waste-collection system for Peruvian municipalities. Municipal
+staff manage trucks, routes, and drivers from a web dashboard. Citizens follow
+active trucks and report missed collections from a mobile app. Several
+municipalities run on one deployment and each sees only its own data.
 
-This repository is a Bun workspace monorepo. The API owns validation, business
-rules, and database writes. The web and mobile apps call the API.
+An HTTP API in `apps/api` owns authentication, business rules, and every write
+to PostgreSQL. The web and mobile apps are clients of that API.
 
-## Get started
+## Install
 
-You need Bun 1.4 and a PostgreSQL database. Supabase works well for local
-development.
-
-1. Copy the environment template and fill in the required values:
-
-   ```sh
-   cp .env.example .env
-   ```
-
-2. Install dependencies:
-
-   ```sh
-   bun install
-   ```
-
-3. Create the database schema:
-
-   ```sh
-   bun --filter @lima-garbage/database db:push
-   ```
-
-4. Create a municipality and its first owner. Run it again for each
-   municipality:
-
-   ```sh
-   bun --filter @lima-garbage/database setup:municipality
-   ```
-
-5. Create an account for the platform support team if needed. Support reads
-   every municipality and changes data only by impersonating a user:
-
-   ```sh
-   bun --filter @lima-garbage/database setup:support
-   ```
-
-6. Add sample trucks, users, a route, and an assignment if needed:
-
-   ```sh
-   bun --filter @lima-garbage/database db:seed
-   ```
-
-7. Start the API:
-
-   ```sh
-   bun --filter @lima-garbage/api dev
-   ```
-
-The API listens on `http://localhost:4000` by default. Start the web app in a
-second terminal:
+You need [Bun](https://bun.sh) 1.4 and a PostgreSQL database.
 
 ```sh
-bun --filter @lima-garbage/web dev
+git clone https://github.com/empiricalhq/lima-limpia.git
+cd lima-limpia
+cp .env.example .env
+bun install
 ```
 
-The web app expects `API_BASE_URL=http://localhost:4000`. See
-[`apps/api/readme.md`](apps/api/readme.md) for the endpoint reference.
+Open `.env` and set three values. The template leaves them empty or as
+placeholders, and the scripts and the API stop without them:
 
-## Repository layout
+- `DATABASE_URL`: your PostgreSQL connection string.
+- `BETTER_AUTH_SECRET`: a random string. `openssl rand -base64 32` prints one.
+- `RESEND_API_KEY`: a [Resend](https://resend.com/api-keys) API key. The API
+  sends the password-reset email with it.
 
-| Path                                     | Purpose                                                                                            |
-| ---------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| [`apps/api`](apps/api)                   | Hono API. It owns authentication, business rules, and database writes.                             |
-| [`apps/web`](apps/web)                   | Next.js dashboard for municipal staff. Server actions call the API.                                |
-| [`apps/citizen`](apps/citizen)           | Expo app for citizens. It shows trucks, handles reports, and stores the session in secure storage. |
-| [`apps/server`](apps/server)             | `json-server` prototype. It is not part of the production data flow.                               |
-| [`packages/database`](packages/database) | Drizzle schema, migrations, and database tooling.                                                  |
-| [`packages/email`](packages/email)       | React Email templates used by the API.                                                             |
-| [`datasets`](datasets)                   | Marimo notebooks for public waste and population datasets.                                         |
-
-The runtime data flow and package boundaries are shown in
-[`ARCHITECTURE.md`](ARCHITECTURE.md).
-
-## Development commands
-
-Run these commands from the repository root:
+Then create the schema, a municipality, and sample data, and start the API:
 
 ```sh
-bun --filter @lima-garbage/api test
-bun run format
-bun run format:check
-bun run lint
-bun --filter @lima-garbage/citizens start
-bun --filter @lima-garbage/citizens dev
-cd datasets && mise run install && mise run dev
+bun --filter @lima-garbage/database db:push
+bun --filter @lima-garbage/database setup:municipality
+bun --filter @lima-garbage/database db:seed
+bun --filter @lima-garbage/api dev
 ```
 
-The citizen app has native dependencies, so Expo Go is not enough. Use an EAS
-development build or a local Android build. Its setup is documented in
-[`apps/citizen/readme.md`](apps/citizen/readme.md).
+`setup:municipality` creates a municipality and its first owner. `db:seed` adds
+sample trucks, a route, and users to the oldest municipality.
+[Setup](docs/setup.md) covers the web dashboard, the citizen app, and the
+support account.
+
+## Try it
+
+With the API running, check that it is up:
+
+```sh
+curl http://localhost:4000/api/health
+```
+
+```json
+{ "status": "ok", "timestamp": "2026-10-06T17:21:29.825Z" }
+```
+
+Sign in as the seeded citizen. The session cookie goes in a jar and comes back
+on the next request:
+
+```sh
+curl -c jar -H 'content-type: application/json' \
+  -d '{"email":"citizen@example.com","password":"password123"}' \
+  http://localhost:4000/api/auth/sign-in/email
+
+curl -b jar http://localhost:4000/api/citizen/trucks
+```
+
+The response has one entry per active truck. The first entry is:
+
+```json
+{
+  "data": [
+    {
+      "id": "gxiqqhdhbkstsnyafjtty7fw",
+      "name": "Recolector Miraflores",
+      "license_plate": "MIR-001",
+      "is_active": true,
+      "created_at": "2026-10-06T17:21:13.108Z",
+      "lat": null,
+      "lng": null,
+      "location_updated_at": null,
+      "assignment_status": "scheduled"
+    }
+  ]
+}
+```
+
+`lat` and `lng` are `null` until a driver on an active assignment reports a
+location. The full route list is in the [API reference](docs/api.md).
+
+## Features
+
+- Multi-municipality tenancy. Every staff query is scoped to one municipality,
+  and the database rejects rows that mix two.
+- Staff roles `owner`, `admin`, `supervisor`, and `driver`, with permissions per
+  route.
+- Routes with ordered waypoints, and assignments that pair a route, a truck, and
+  a driver.
+- Live truck locations from the driver's active assignment.
+- Citizen reports of missed collections and illegal dumping, routed to the
+  nearest municipality within 5 km.
+- A support role that reads every municipality and acts only by impersonating a
+  user, with an audit trail.
+- Password-reset email rendered from React Email templates.
+
+## Repository
+
+| Path                                     | Contents                                                       |
+| ---------------------------------------- | -------------------------------------------------------------- |
+| [`apps/api`](apps/api)                   | Hono API: authentication, business rules, database writes.     |
+| [`apps/web`](apps/web)                   | Next.js dashboard for municipal staff.                         |
+| [`apps/citizen`](apps/citizen)           | Expo app for citizens: trucks, reports, waste-sorting lessons. |
+| [`apps/server`](apps/server)             | `json-server` mock with sample trucks and collections.         |
+| [`packages/database`](packages/database) | Drizzle schema, migrations, setup and seed scripts.            |
+| [`packages/email`](packages/email)       | React Email templates.                                         |
+| [`datasets`](datasets)                   | Marimo notebooks on public waste and population data.          |
 
 ## Documentation
 
-- [Architecture](ARCHITECTURE.md)
-- [Contributing](CONTRIBUTING.md)
-- [API](apps/api/readme.md)
-- [Web dashboard](apps/web/readme.md)
-- [Prototype server](apps/server/readme.md)
-- [Database](packages/database/readme.md)
-- [Email package](packages/email/readme.md)
-- [Datasets](datasets/readme.md)
-- [Comment review guide](notes/comments.md)
+- [Manual](docs/readme.md): setup, API reference, authentication, tenancy,
+  support access, and assignments.
+- [Architecture](ARCHITECTURE.md): the code map.
+- [Contributing](CONTRIBUTING.md): checks and pull requests.
 
 ## Maintainers
 
