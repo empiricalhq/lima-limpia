@@ -2,11 +2,13 @@
 
 `@lima-garbage/database` owns the PostgreSQL schema used by the API. It defines
 tables with [Drizzle](https://orm.drizzle.team/docs/overview) and stores
-generated migrations. The API currently creates its own `pg` pool and runs
-parameterized SQL.
+generated migrations. The API creates its own `pg` pool and runs parameterized
+SQL. The API does not use Drizzle to build queries.
 
-The API is the only workspace that may import this package. The web and citizen
-apps call the API instead of connecting to PostgreSQL.
+The API is the only workspace that imports this package. The web and citizen
+apps call the API instead of connecting to PostgreSQL. The package also holds
+the Better Auth setup that the API and the scripts share
+([`src/auth`](src/auth)).
 
 ## Schema
 
@@ -18,6 +20,7 @@ Schema files live in [`src/schema`](src/schema):
 - `issues.ts`: citizen reports, driver reports, and system alerts.
 - `locations.ts`: current truck locations and location history.
 - `routes.ts`: routes, waypoints, schedules, and assignments.
+- `support.ts`: the support audit log.
 - `trucks.ts`: truck records.
 
 [`src/schema/index.ts`](src/schema/index.ts) exports the tables and defines all
@@ -59,15 +62,15 @@ bun --filter @lima-garbage/database setup:support
 bun --filter @lima-garbage/database setup:support --revoke support@example.com
 ```
 
-The seed script fills the oldest municipality, and there is nothing to copy into
-`.env`. Then run:
+The seed script fills the oldest municipality with sample users, trucks, a
+route, and assignments, so run `setup:municipality` first. Running it again
+reuses the records it created.
 
 ```sh
 bun --filter @lima-garbage/database db:seed
 ```
 
-The seed script is for development data. It is safe to run more than once for
-the records it owns, but it must not run against production data.
+The seed data is for development databases only.
 
 ## Testing
 
@@ -75,8 +78,11 @@ the records it owns, but it must not run against production data.
 bun --filter @lima-garbage/database test
 ```
 
+The tests read `DATABASE_URL` from the environment or from the root `.env.test`.
 The test files share one database and truncate its tables in `beforeEach`, so
-they must run one at a time, not with `bun test --parallel`.
+they must run one at a time, not with `bun test --parallel`, and the database
+must be a throwaway one. [Setup](../../docs/setup.md#run-the-tests) shows how to
+start one and apply the migrations.
 
 ## Migrations
 
@@ -92,12 +98,9 @@ flowchart LR
 ```
 
 Keep each migration SQL file with its matching entry in
-[`migrations/meta/_journal.json`](migrations/meta/_journal.json). Do not apply a
-migration until the complete history can be created on a fresh database.
+[`migrations/meta/_journal.json`](migrations/meta/_journal.json). The complete
+history must apply to a fresh database.
 
 `db:push` changes a database without recording a migration and is for local
-development. `db:migrate` applies the committed migration files.
-
-Do not edit generated migration snapshots by hand. If a migration needs a manual
-change, document why in the migration review and make sure a fresh database can
-still apply the complete migration history.
+development. `db:migrate` applies the committed migration files. CI creates its
+test database with `db:migrate`.

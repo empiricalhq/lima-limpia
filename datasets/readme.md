@@ -1,23 +1,24 @@
 # Datasets
 
-This package contains Marimo notebooks for exploring public waste and
-population data from Peru. The notebooks are experiments for the project, not
-an API or a production data pipeline.
+This package contains Marimo notebooks for exploring public waste and population
+data from Peru.
 
 ## Notebooks
 
-| File | Contents |
-| --- | --- |
+| File                                                       | Contents                                                      |
+| ---------------------------------------------------------- | ------------------------------------------------------------- |
 | [`src/01-waste-generation.py`](src/01-waste-generation.py) | Annual municipal waste generation and a ranking of districts. |
-| [`src/02-valorization.py`](src/02-valorization.py) | Organic and inorganic waste valorization by district. |
-| [`src/03-population-map.py`](src/03-population-map.py) | Department, district, and Lima block population maps. |
+| [`src/02-valorization.py`](src/02-valorization.py)         | Organic and inorganic waste valorization by district.         |
+| [`src/03-population-map.py`](src/03-population-map.py)     | Department, district, and Lima block population maps.         |
 
 The source pages are linked in the notebooks. They are published by the
 [Peruvian open-data portal](https://datosabiertos.gob.pe/) and the
 [National Environmental Information System](https://sinia.minam.gob.pe/portal/datos-abiertos/).
-The main sources are [annual waste generation](https://datosabiertos.gob.pe/dataset/generaci%C3%B3n-anual-de-residuos-s%C3%B3lidos-domiciliarios-y-municipales-ministerio-del-ambiente),
+The main sources are
+[annual waste generation](https://datosabiertos.gob.pe/dataset/generaci%C3%B3n-anual-de-residuos-s%C3%B3lidos-domiciliarios-y-municipales-ministerio-del-ambiente),
 [municipal waste generation](https://datosabiertos.gob.pe/dataset/residuos-municipales-generados-anualmente),
-and [district waste valorization](https://datosabiertos.gob.pe/dataset/valorizaci%C3%B3n-de-residuos-s%C3%B3lidos-nivel-distrital-ministerio-del-ambiente-minam).
+and
+[district waste valorization](https://datosabiertos.gob.pe/dataset/valorizaci%C3%B3n-de-residuos-s%C3%B3lidos-nivel-distrital-ministerio-del-ambiente-minam).
 
 ## Run a notebook
 
@@ -39,8 +40,7 @@ time. The population notebook reads the checked-in geographic files under
 
 ## Export
 
-The export task currently builds the population map notebook as a WebAssembly
-HTML bundle:
+The export task builds the population map notebook as a WebAssembly HTML bundle:
 
 ```sh
 mise run export

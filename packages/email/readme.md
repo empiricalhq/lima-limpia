@@ -1,16 +1,16 @@
 # Email package
 
 `@lima-garbage/email` contains the React Email templates used by the API. It
-currently exports the password reset renderer.
+exports the password reset renderer.
 
 ## Use the renderer
 
 ```ts
-import { renderPasswordReset } from '@lima-garbage/email';
+import { renderPasswordReset } from "@lima-garbage/email";
 
 const html = await renderPasswordReset({
-  userName: 'María Pérez',
-  resetUrl: 'https://example.com/reset?token=abc123',
+  userName: "María Pérez",
+  resetUrl: "https://example.com/reset?token=abc123",
 });
 ```
 
