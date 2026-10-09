@@ -22,6 +22,7 @@ The code map is in [ARCHITECTURE.md](ARCHITECTURE.md). Checks are in
 - Keep each migration SQL file with its entry in
   `packages/database/migrations/meta/_journal.json`. Do not edit generated
   snapshots by hand.
-- API and database tests clear every table. Run them only with `DATABASE_URL` or
-  `.env.test` pointing at a throwaway database.
+- API and database tests get their database from `startTestDatabase` in
+  `packages/database/testing`. Do not point a test at a database you did not
+  start.
 - Run the seed script only against a development database.

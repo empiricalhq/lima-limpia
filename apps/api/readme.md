@@ -21,11 +21,10 @@ the root `.env`. `start` runs the server once without reloading.
 bun --filter @lima-garbage/api test
 ```
 
-[`test-runner.ts`](test-runner.ts) starts the server with `DATABASE_URL`,
-`BETTER_AUTH_SECRET`, and `RESEND_API_KEY` from the environment or from the root
-`.env.test`, waits for it, then runs the test files in sequence. The tests clear
-every table in that database, so point it at a throwaway one.
-[Setup](../../docs/setup.md#run-the-tests) shows how to start one.
+[`test-runner.ts`](test-runner.ts) starts the test database and the server
+against it, waits for the server, then runs the test files in sequence. Each
+suite clears every table when it starts.
+[Setup](../../docs/setup.md#run-the-tests) says where the database comes from.
 
 ## Deploy
 

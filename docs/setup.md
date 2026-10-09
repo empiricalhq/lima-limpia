@@ -7,10 +7,8 @@ with sample data.
 
 - [Bun](https://bun.sh) 1.4. [`mise.toml`](../mise.toml) pins the version, and
   `mise install` provides it.
-- A PostgreSQL database. A Supabase project works, and so does a local
-  container.
-- [Docker](https://docs.docker.com/get-started/get-docker/), or any other
-  PostgreSQL you can wipe, to run the tests.
+- A PostgreSQL database to run the API. A Supabase project works, and so does a
+  local container. The tests do not need one.
 
 ## Configure
 
@@ -121,37 +119,21 @@ The citizen app needs a development build, not Expo Go. See
 
 ## Run the tests
 
-`mise run check:test`, and therefore `mise run check`, applies the migrations to
-the database in `DATABASE_URL`, then runs the API and database tests against it.
-The tests clear every table in that database, so it must not be your development
-database. Start a throwaway PostgreSQL with Docker:
-
-```sh
-docker run -d --rm --name lima-limpia-test-db -p 127.0.0.1:54329:5432 -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=lima_limpia_test postgres:17-alpine
-```
-
-Point the tests at it, run the checks, and stop the container:
-
-```sh
-export DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54329/lima_limpia_test
-export BETTER_AUTH_SECRET=test-secret
-export RESEND_API_KEY=test-key
-mise run check
-docker stop lima-limpia-test-db
-```
-
-Instead of exporting the variables, you can put them in `.env.test` at the
-repository root. [`.env.test.example`](../.env.test.example) is the template.
-Variables already in your environment take priority over the file.
+`mise run check:test`, and therefore `mise run check`, needs no PostgreSQL, no
+`.env` and no environment variables. Each test run starts an in-memory
+[PGlite](https://pglite.dev) database, applies every migration in
+[`packages/database/migrations`](../packages/database/migrations) to it, serves
+it on a free local port, and discards it when the run ends. The API runner and
+the database package's Bun preload set `DATABASE_URL` and the other variables
+the API needs, replacing any value of those variables in your environment. The
+code is in [`packages/database/testing`](../packages/database/testing).
 
 The API test server listens on port 4000. Stop a running development API first,
 or the tests send their requests to it.
 
-To run the test suites alone, apply the migrations once with the variables
-above, then run the package scripts:
+To run the test suites alone:
 
 ```sh
-bun --filter @lima-garbage/database db:migrate
 bun --filter @lima-garbage/api test
 bun --filter @lima-garbage/database test
 ```

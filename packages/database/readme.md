@@ -42,7 +42,6 @@ Run these from the repository root:
 ```sh
 bun --filter @lima-garbage/database db:generate
 bun --filter @lima-garbage/database db:push
-bun --filter @lima-garbage/database db:push:test
 bun --filter @lima-garbage/database db:studio
 ```
 
@@ -78,11 +77,14 @@ The seed data is for development databases only.
 bun --filter @lima-garbage/database test
 ```
 
-The tests read `DATABASE_URL` from the environment or from the root `.env.test`.
-The test files share one database and truncate its tables in `beforeEach`, so
-they must run one at a time, not with `bun test --parallel`, and the database
-must be a throwaway one. [Setup](../../docs/setup.md#run-the-tests) shows how to
-start one and apply the migrations.
+[`testing/preload.ts`](testing/preload.ts), which [`bunfig.toml`](bunfig.toml)
+preloads, starts the test database, so a bare `bun test` here is safe too. The
+setup and seed script tests share that database and truncate its tables in
+`beforeEach`, so they run one at a time, not with `bun test --parallel`. Each
+migration test builds its own database from the earlier migration files.
+`@lima-garbage/database/testing` exports
+[`testing/database.ts`](testing/database.ts) to the API's test runner.
+[Setup](../../docs/setup.md#run-the-tests) says where the database comes from.
 
 ## Migrations
 
@@ -102,5 +104,5 @@ Keep each migration SQL file with its matching entry in
 history must apply to a fresh database.
 
 `db:push` changes a database without recording a migration and is for local
-development. `db:migrate` applies the committed migration files. CI creates its
-test database with `db:migrate`.
+development. `db:migrate` applies the committed migration files. The test
+database applies the same files.

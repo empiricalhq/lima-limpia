@@ -6,9 +6,8 @@ Spanish. [AGENTS.md](AGENTS.md) lists the rules a change must follow.
 
 ## Setup
 
-Follow [Setup](docs/setup.md). The checks need [mise](https://mise.jdx.dev) and
-a PostgreSQL database that is safe to wipe. Setup shows how to start one with
-Docker.
+Follow [Setup](docs/setup.md). The checks need [mise](https://mise.jdx.dev).
+They run on a host with no database.
 
 ## Checks
 
@@ -32,10 +31,9 @@ cd datasets && mise run fix
 
 [`mise.toml`](mise.toml) defines `mise run check`, which runs the same checks as
 CI: format, lint, typecheck, the web build, and the API and database tests. The
-test task needs `DATABASE_URL` to point at a PostgreSQL database and clears
-every table in it, as [Setup](docs/setup.md#run-the-tests) describes. Each check
-also runs alone: `mise run check:format`, `check:lint`, `check:typecheck`,
-`check:web-build` and `check:test`.
+tests bring their own database, as [Setup](docs/setup.md#run-the-tests)
+describes. Each check also runs alone: `mise run check:format`, `check:lint`,
+`check:typecheck`, `check:web-build` and `check:test`.
 
 ## Documentation
 
