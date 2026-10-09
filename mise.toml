@@ -23,12 +23,10 @@ description = "Build the web app"
 run = "bun --filter @lima-garbage/web build"
 env = { API_BASE_URL = "http://localhost:4000", NEXT_PUBLIC_BASE_URL = "http://localhost:3000" }
 
-# The tests wipe the database in .env.test, so it must be one that is safe to lose.
 [tasks."check:test"]
-description = "Migrate the test database, then run the API and database tests"
+description = "Run the API and database tests against an in-process PGlite database"
 run = """
 set -e
-(cd packages/database && bun --env-file=../../.env.test run db:migrate)
 (cd apps/api && bun run test)
 (cd packages/database && bun run test)
 """

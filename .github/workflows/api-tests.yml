@@ -31,26 +31,6 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    services:
-      postgres:
-        image: postgres:17-alpine
-        env:
-          POSTGRES_DB: lima_limpia_test
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_USER: postgres
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
-    env:
-      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/lima_limpia_test
-      BETTER_AUTH_SECRET: test-secret
-      RESEND_API_KEY: test-key
-
     defaults:
       run:
         working-directory: apps/api
@@ -62,10 +42,6 @@ jobs:
         uses: oven-sh/setup-bun@v2
 
       - run: bun install --frozen-lockfile --filter @lima-garbage/api --filter @lima-garbage/database
-
-      - name: apply database migrations
-        working-directory: packages/database
-        run: bun run db:migrate
 
       - run: bun run test
 
