@@ -1,13 +1,18 @@
 import { Pool, type QueryResultRow } from 'pg';
 
+export function testDatabaseUrl(): string {
+  const url = process.env.TEST_DATABASE_URL;
+  if (!url) {
+    throw new Error('TEST_DATABASE_URL is not set. Run the tests with `bun run test`, which starts the database.');
+  }
+  return url;
+}
+
 export class Database {
   private readonly pool: Pool;
 
   constructor() {
-    if (!process.env.DATABASE_URL) {
-      throw new Error('DATABASE_URL is required');
-    }
-    this.pool = new Pool({ connectionString: process.env.DATABASE_URL });
+    this.pool = new Pool({ connectionString: testDatabaseUrl() });
   }
 
   async clean(): Promise<void> {

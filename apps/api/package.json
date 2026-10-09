@@ -10,7 +10,6 @@
     "dev": "bun --hot --env-file=../../.env src/cmd/server.ts",
     "start": "bun src/cmd/server.ts",
     "test": "bun test-runner.ts",
-    "test:dev": "bun --hot --env-file=../../.env.test src/cmd/server.ts",
     "format": "biome format --write .",
     "lint": "biome lint .",
     "typecheck": "tsc --noEmit"

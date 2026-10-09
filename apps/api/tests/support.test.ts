@@ -4,7 +4,7 @@ import { createAppAuth } from '@lima-garbage/database';
 import { Pool } from 'pg';
 import { HTTP_STATUS } from './config';
 import { TestClient } from './helpers/client';
-import { Database } from './helpers/database';
+import { Database, testDatabaseUrl } from './helpers/database';
 import { type Fixture, ids, type Person, Tenancy } from './helpers/tenancy';
 import type { ErrorResponse, SuccessResponse } from './types';
 
@@ -735,7 +735,7 @@ describe('a municipality owner or admin cannot grant the platform role or impers
   );
 
   describe('the admin plugin role set', () => {
-    const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+    const pool = new Pool({ connectionString: testDatabaseUrl() });
     const auth = createAppAuth({
       pool,
       secret: process.env.BETTER_AUTH_SECRET ?? '',
