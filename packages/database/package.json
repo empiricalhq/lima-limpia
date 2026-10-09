@@ -3,7 +3,8 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./testing": "./testing/database.ts"
   },
   "scripts": {
     "db:generate": "drizzle-kit generate --config ./drizzle.config.ts && biome format --write ./migrations",
@@ -11,12 +12,9 @@
     "setup:municipality": "bun --env-file=../../.env scripts/create-municipality.ts",
     "setup:support": "bun --env-file=../../.env scripts/create-support.ts",
     "db:seed": "bun --env-file=../../.env scripts/seed.ts",
-    "db:push:test": "bun --env-file=../../.env.test drizzle-kit push --config ./drizzle.config.ts --force",
-    "setup:municipality:test": "bun --env-file=../../.env.test scripts/create-municipality.ts",
-    "setup:support:test": "bun --env-file=../../.env.test scripts/create-support.ts",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
-    "test": "bun --env-file=../../.env.test test --timeout 60000 scripts",
+    "test": "bun test --timeout 60000 scripts",
     "format": "biome format --write .",
     "lint": "biome lint .",
     "typecheck": "tsc --noEmit"
@@ -29,6 +27,7 @@
     "picocolors": "1.1.1"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "0.4.6",
     "@paralleldrive/cuid2": "^3.3.0",
     "@types/bun": "1.4.2",
     "@types/pg": "^8.23.1",
