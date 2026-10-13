@@ -19,7 +19,7 @@
     "@lima-garbage/database": "workspace:*",
     "@lima-garbage/email": "workspace:*",
     "better-auth": "~1.7.5",
-    "hono": "^4.13.8",
+    "hono": "^4.13.13",
     "pg": "^8.23.0",
     "resend": "^6.28.1",
     "zod": "^4.6.5"
