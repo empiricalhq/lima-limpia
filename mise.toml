@@ -1,8 +1,8 @@
 monorepo_root = true
 
 [tools]
-bun = "1.4.2"
-biome = "2.5.14"
+bun = "1.4.3"
+biome = "2.5.15"
 node = "24.21.0"
 
 # The check tasks mirror .github/workflows/checks.yml and api-tests.yml.
@@ -21,6 +21,7 @@ run = "bun run typecheck"
 [tasks."check:web-build"]
 description = "Build the web app"
 run = "bun --filter @lima-garbage/web build"
+wait_for = ["check:typecheck"]
 env = { API_BASE_URL = "http://localhost:4000", NEXT_PUBLIC_BASE_URL = "http://localhost:3000" }
 
 [tasks."check:test"]
