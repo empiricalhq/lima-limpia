@@ -21,7 +21,6 @@ def _():
 
     **Autor**: Pedro Rojas, David Duran
     """)
-    return
 
 
 @app.cell(hide_code=True)
@@ -29,7 +28,6 @@ def _():
     mo.md(r"""
     ## Mapa departamental de Perú
     """)
-    return
 
 
 @app.cell
@@ -50,7 +48,6 @@ def _(mapa_departamental_peru):
 
     plt.tight_layout()
     mo.mpl.interactive(fig_dep)
-    return
 
 
 @app.cell(hide_code=True)
@@ -58,7 +55,6 @@ def _():
     mo.md(r"""
     ## Mapa distrital de Perú
     """)
-    return
 
 
 @app.cell
@@ -80,7 +76,6 @@ def _(mapa_distrital):
 
     plt.tight_layout()
     mo.mpl.interactive(fig_dist)
-    return
 
 
 @app.cell(hide_code=True)
@@ -90,7 +85,6 @@ def _():
 
     Datos de [geogpsperu](https://drive.google.com/file/d/1qqVdEiCWofxUhPPgSHU0Le82FLUaA7-H/view).
     """)
-    return
 
 
 @app.cell
@@ -121,7 +115,6 @@ def _():
     mo.md(r"""
     Then we load the shapefile and merge it with the attribute data (without this step, we wouldn't know the actual locations!)
     """)
-    return
 
 
 @app.cell
@@ -155,7 +148,6 @@ def _(manzana_merged_gdf):
     plt.tight_layout()
 
     mo.mpl.interactive(fig)
-    return
 
 
 if __name__ == "__main__":

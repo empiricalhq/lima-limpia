@@ -29,7 +29,6 @@ def _():
 
     **Re-implementación**: David Duran
     """)
-    return
 
 
 @app.cell(hide_code=True)
@@ -37,7 +36,6 @@ def _():
     mo.md("""
     ## Descarga de datasets de valorización
     """)
-    return
 
 
 @app.cell
@@ -71,7 +69,6 @@ def _():
     mo.md("""
     ## Carga y limpieza de datos
     """)
-    return
 
 
 @app.cell
@@ -121,7 +118,6 @@ def normalize_cols(df):
 def _(valorization_org_raw):
     valorization_org = normalize_cols(valorization_org_raw)
     valorization_org.head()
-    return
 
 
 @app.cell
@@ -136,7 +132,6 @@ def _():
     mo.md("""
     ## Procesamiento y agregación
     """)
-    return
 
 
 @app.function(hide_code=True)
@@ -188,7 +183,6 @@ def _():
     mo.md("""
     ## Visualización: Top 10 distritos por valorización total
     """)
-    return
 
 
 @app.cell
@@ -220,7 +214,6 @@ def _(valorization_total):
 
     fig.update_layout(xaxis_title="Distrito", yaxis_title="Toneladas valorizadas")
     mo.ui.plotly(fig)
-    return
 
 
 if __name__ == "__main__":

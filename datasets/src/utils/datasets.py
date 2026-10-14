@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import json
 import logging
 import re
@@ -5,7 +7,7 @@ import time
 
 from datetime import datetime
 from pathlib import Path
-from typing import TYPE_CHECKING, Optional, Union
+from typing import TYPE_CHECKING
 from urllib.parse import urljoin, urlparse
 
 import requests
@@ -51,7 +53,7 @@ def _record_download(data_dir: Path, url: str, title: str, filename: str) -> Non
     _save_metadata(data_dir, metadata)
 
 
-def _find_cached_file(data_dir: Path, url: str) -> Optional[Path]:
+def _find_cached_file(data_dir: Path, url: str) -> Path | None:
     """Return a cached file only when its manifest entry and file still exist."""
     metadata = _load_metadata(data_dir)
     for filename, record in metadata.items():
@@ -65,10 +67,10 @@ def _find_cached_file(data_dir: Path, url: str) -> Optional[Path]:
 
 def find_tag(
     parent: Tag,
-    name: Optional[str] = None,
-    class_: Optional[str] = None,
-    id_: Optional[str] = None,
-) -> Optional[Tag]:
+    name: str | None = None,
+    class_: str | None = None,
+    id_: str | None = None,
+) -> Tag | None:
     kwargs = {}
     if class_:
         kwargs["class_"] = class_
@@ -78,7 +80,7 @@ def find_tag(
     return tag if isinstance(tag, Tag) else None
 
 
-def get_text(tag: Optional[Tag]) -> str:
+def get_text(tag: Tag | None) -> str:
     """Return stripped text from a tag, or 'unknown' if missing."""
     return tag.get_text(strip=True) if tag else "unknown"
 
@@ -102,7 +104,7 @@ def fetch_file(url: str, filepath: Path, max_retries: int = 3) -> bool:
 
 def fetch_response_with_fallbacks(
     url: str, *, stream: bool = False, timeout: int = 30
-) -> Optional[requests.Response]:
+) -> requests.Response | None:
     """
     Fetch a URL and return a response.
 
@@ -279,9 +281,7 @@ def download_csvs(urls: list[str], data_dir: Path, force: bool = False) -> list[
     return downloaded
 
 
-def download(
-    url: Union[str, list[str]], data_dir: Path, force: bool = False
-) -> list[Path]:
+def download(url: str | list[str], data_dir: Path, force: bool = False) -> list[Path]:
     """
     Download CSVs from one or more URLs.
 

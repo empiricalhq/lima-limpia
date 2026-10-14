@@ -22,7 +22,6 @@ def _():
 
     **Autor**: Pedro Rojas
     """)
-    return
 
 
 @app.cell
@@ -42,7 +41,6 @@ def _():
 
     Descarga de datos sobre la generación de residuos desde [datosabiertos.gob.pe](datosabiertos.gob.pe). Los archivos se guardan en "datasets/data".
     """)
-    return
 
 
 @app.cell
@@ -92,13 +90,11 @@ def _():
     mo.md(r"""
     ## Dataset #1: Generación anual de residuos sólidos
     """)
-    return
 
 
 @app.cell(hide_code=True)
 def _(df_generacion):
     df_generacion.head() if df_generacion is not None else "El dataset no pudo ser cargado."
-    return
 
 
 @app.cell(hide_code=True)
@@ -108,7 +104,6 @@ def _():
 
     Análisis de la cantidad total de residuos municipales generados a nivel nacional.
     """)
-    return
 
 
 @app.cell
@@ -148,7 +143,6 @@ def _(df_generacion):
             )
         )
         mo.ui.altair_chart(line_chart)
-    return
 
 
 @app.cell(hide_code=True)
@@ -158,7 +152,6 @@ def _():
 
     Ranking de los municipios que más residuos generaron en el último año registrado.
     """)
-    return
 
 
 @app.cell
@@ -207,7 +200,6 @@ def _(df_generacion):
             )
         )
         mo.ui.altair_chart(bar_chart)
-    return
 
 
 @app.cell

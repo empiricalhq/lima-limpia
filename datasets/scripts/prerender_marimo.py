@@ -32,5 +32,5 @@ try:
 
         browser.close()
 
-except Exception as e:
+except Exception as e:  # noqa: BLE001 - report any failure as one line
     sys.exit(f"Error: {e}")
