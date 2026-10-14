@@ -35,7 +35,7 @@ function PasswordResetEmail({ userName, resetUrl }: PasswordResetEmailProps) {
             <Heading className="mx-0 my-[30px] p-0 text-center font-normal text-[24px] text-black">
               Restablecer tu contraseña en <strong>Lima Limpia</strong>
             </Heading>
-            {userName && <Text className="text-[14px] text-black leading-6">Hola {userName},</Text>}
+            {userName ? <Text className="text-[14px] text-black leading-6">Hola {userName},</Text> : null}
             <Text className="text-[14px] text-black leading-6">
               Recibimos una solicitud para restablecer la contraseña de tu cuenta. Haz clic en el siguiente botón para
               establecer una nueva contraseña:
