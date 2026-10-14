@@ -3,6 +3,7 @@ import { Database } from './helpers/database';
 
 const FOREIGN_KEY_VIOLATION = '23503';
 const NOT_NULL_VIOLATION = '23502';
+const RESTRICT_VIOLATION = '23001';
 
 /**
  * The API scopes every query, but the schema is the last line: a row must not be able to point at
@@ -128,7 +129,8 @@ describe('truck_current_location assignment', () => {
       VALUES ('assignment-held', 'route-a', 'truck-a', 'user-a', CURRENT_DATE, NOW(), NOW(), 'user-a', 'org-a')`);
     await db.query(LOCATION, ['assignment-held']);
 
-    expect(await code(`DELETE FROM route_assignment WHERE id = 'assignment-held'`)).toBe(FOREIGN_KEY_VIOLATION);
+    // ON DELETE RESTRICT reports restrict_violation, not foreign_key_violation.
+    expect(await code(`DELETE FROM route_assignment WHERE id = 'assignment-held'`)).toBe(RESTRICT_VIOLATION);
   });
 });
 
