@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.5.14/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.5.15/schema.json",
   "vcs": {
     "enabled": true,
     "clientKind": "git",
@@ -44,6 +44,19 @@
     }
   },
   "overrides": [
+    {
+      "includes": ["**"],
+      "linter": {
+        "rules": {
+          "performance": {
+            "useSolidForComponent": "off"
+          },
+          "suspicious": {
+            "noReactSpecificProps": "off"
+          }
+        }
+      }
+    },
     {
       "includes": ["**/internal/domains/**/service.ts", "**/internal/domains/**/handler.ts"],
       "plugins": ["./biome-plugins/no-service-database-access.grit"]
