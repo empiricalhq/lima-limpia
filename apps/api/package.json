@@ -18,16 +18,16 @@
     "@hono/zod-validator": "^0.9.1",
     "@lima-garbage/database": "workspace:*",
     "@lima-garbage/email": "workspace:*",
-    "better-auth": "~1.7.5",
-    "hono": "^4.13.8",
-    "pg": "^8.23.0",
-    "resend": "^6.28.1",
-    "zod": "^4.6.5"
+    "better-auth": "~1.7.7",
+    "hono": "^4.13.13",
+    "pg": "^8.23.1",
+    "resend": "^6.32.1",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
-    "@types/bun": "1.4.2",
+    "@types/bun": "1.4.3",
     "@types/pg": "^8.23.1",
     "typescript": "7.0.2",
-    "wrangler": "^4.135.0"
+    "wrangler": "^4.150.0"
   }
 }

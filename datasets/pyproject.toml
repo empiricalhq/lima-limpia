@@ -14,20 +14,20 @@ authors = [
 
 dependencies = [
     "altair>=6.3.0",
-    "beautifulsoup4>=4.14.2",
+    "beautifulsoup4>=4.15.0",
     "fiona>=1.10.1",
-    "geopandas>=1.1.2",
-    "marimo>=0.24.0",
-    "matplotlib>=3.10.7",
-    "numpy>=2.3.4",
-    "pandas>=3.0.0",
-    "playwright>=1.55.0",
-    "plotly[express]>=7.0.0",
-    "polars>=1.35.1",
-    "pyarrow>=23.0.1", # pandas dependency (see: https://github.com/pandas-dev/pandas/issues/54466)
-    "pyproj>=3.7.2",
-    "requests>=2.33.0",
-    "shapely>=2.1.2",
+    "geopandas>=1.2.0",
+    "marimo>=0.25.1",
+    "matplotlib>=3.11.2",
+    "numpy>=2.5.4",
+    "pandas>=3.0.6",
+    "playwright>=1.64.0",
+    "plotly[express]>=7.1.0",
+    "polars>=2.0.0",
+    "pyarrow>=26.0.0", # pandas dependency (see: https://github.com/pandas-dev/pandas/issues/54466)
+    "pyproj>=3.8.0",
+    "requests>=2.34.2",
+    "shapely>=2.2.0",
 ]
 
 [tool.ruff]
@@ -55,6 +55,10 @@ extend-select = [
 extend-safe-fixes = [
     "TC",  # move import from and to TYPE_CHECKING blocks
 ]
+
+[tool.ruff.lint.per-file-ignores]
+# The downloader logs through the root logger so that it prints without any logging setup.
+"src/utils/datasets.py" = ["LOG015"]
 
 [tool.ruff.lint.flake8-tidy-imports]
 ban-relative-imports = "all"
