@@ -2,12 +2,41 @@ language js
 
 // SQL on tenant tables must run through a repository's scoped methods. A service that reaches
 // for the database itself can write a query with no tenant filter.
-`$db.$method($args)` where {
-  $db <: r"(?i).*\bdb\b|this\.db",
+//
+// A receiver is a database client when its declared type is imported from `pg` or the shared
+// database module, or it is a `withTransaction` callback parameter. The match is by declared name
+// within the file. A receiver named `db` is refused without a type.
+`$client.$method($args)` where {
   $method <: or {
     `query`,
     `getClient`,
-    `withTransaction`
+    `withTransaction`,
+    `connect`
+  },
+  or {
+    $client <: r"(?i).*\bdb\b|this\.db",
+    and {
+      $client <: or {
+        `this.$name`,
+        $name
+      },
+      or {
+        $program <: contains `$_.withTransaction(($name) => $_)`,
+        and {
+          $program <: contains or {
+            JsFormalParameter(binding=$name, type_annotation=$type),
+            JsPropertyClassMember(name=$name, property_annotation=$type),
+            JsVariableDeclarator(id=$name, variable_annotation=$type),
+            TsPropertySignatureTypeMember(name=$name, type_annotation=$type)
+          },
+          $type <: contains TsReferenceType(name=$typeName),
+          $program <: contains `import $clause from $source` where {
+            $source <: r".*(?:'pg'|/shared/database/database')",
+            $clause <: contains $typeName
+          }
+        }
+      }
+    }
   },
   register_diagnostic(span=$method, message="Services and handlers do not query the database. Add a method to a repository so the query runs under a scope.", severity="error")
 }
