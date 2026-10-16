@@ -32,26 +32,3 @@ export function DashboardSkeleton() {
     </div>
   );
 }
-
-export function TableSkeleton({ rows = 5, columns = 4 }: { rows?: number; columns?: number }) {
-  const rowKeys = Array.from({ length: rows }, (_, i) => `row-${i}`);
-  const colKeys = Array.from({ length: columns }, (_, i) => `col-${i}`);
-
-  return (
-    <div className="space-y-4">
-      <div className="flex space-x-4">
-        {colKeys.map((colKey) => (
-          <Skeleton key={`header-${colKey}`} className="h-4 flex-1" />
-        ))}
-      </div>
-
-      {rowKeys.map((rowKey) => (
-        <div key={rowKey} className="flex space-x-4">
-          {colKeys.map((colKey) => (
-            <Skeleton key={`${rowKey}-${colKey}`} className="h-8 flex-1" />
-          ))}
-        </div>
-      ))}
-    </div>
-  );
-}
