@@ -32,9 +32,6 @@ export const account = pgTable(
   'account',
   {
     id: text('id').primaryKey(),
-    // Dead since better-auth 1.7.3 identifies an account by (providerId, accountId).
-    // Nullable so one schema serves 1.7.2 and 1.7.5; drop it once nothing runs 1.7.2.
-    issuer: text('issuer'),
     accountId: text('accountId').notNull(),
     providerId: text('providerId').notNull(),
     userId: text('userId')

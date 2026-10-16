@@ -64,6 +64,13 @@
       "when": 1790560264713,
       "tag": "0008_platform_support",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1792188387847,
+      "tag": "0009_drop_account_issuer",
+      "breakpoints": true
     }
   ]
 }
