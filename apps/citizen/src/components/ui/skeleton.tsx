@@ -3,17 +3,6 @@ import Animated from "react-native-reanimated";
 import { usePulsingAnimation } from "@/hooks/use-pulsing-animation";
 import { theme } from "@/theme";
 
-export function SkeletonCard() {
-  const animatedStyle = usePulsingAnimation();
-
-  return (
-    <View style={styles.skeleton}>
-      <Animated.View style={[styles.line, animatedStyle]} />
-      <Animated.View style={[styles.line, styles.lineShort, animatedStyle]} />
-    </View>
-  );
-}
-
 export function SkeletonTruckCard() {
   const animatedStyle = usePulsingAnimation();
 

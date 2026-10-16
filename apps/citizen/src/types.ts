@@ -80,8 +80,3 @@ export interface LocationCoords {
   latitude: number;
   longitude: number;
 }
-
-export interface ReportFlowState {
-  returnTo?: string;
-  requiresAuth?: boolean;
-}

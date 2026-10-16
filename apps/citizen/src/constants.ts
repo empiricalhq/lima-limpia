@@ -28,9 +28,6 @@ export const RETRY_CONFIG = {
   MAX_DELAY: 30_000,
 } as const;
 
-export const AUTH_TOKEN_DURATION_MS = 30 * 24 * 60 * 60 * 1000;
-export const TOKEN_EXPIRY_BUFFER = 5 * 60 * 1000;
-
 export const DEFAULT_MAP_CENTER = {
   latitude: -12.0464,
   longitude: -77.0428,
