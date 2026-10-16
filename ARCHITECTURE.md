@@ -19,7 +19,6 @@ flowchart LR
 | `apps/api`          | The Hono application: authentication, authorization, validation, business rules, and persistence.                                       |
 | `apps/web`          | Next.js dashboard. Server components and server actions call the API and pass the session cookie through. `src/proxy.ts` guards routes. |
 | `apps/citizen`      | Expo client. It calls the API from the device and keeps the session in Expo Secure Store.                                               |
-| `apps/server`       | `json-server` mock that serves `db.json` on port 8000.                                                                                  |
 | `packages/database` | Drizzle schema, migrations, the shared Better Auth setup, and the `setup:*` and `db:seed` scripts.                                      |
 | `packages/email`    | React Email templates and the `renderPasswordReset` renderer the API calls.                                                             |
 | `datasets`          | Marimo notebooks. They share no code with the rest.                                                                                     |

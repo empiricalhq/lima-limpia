@@ -109,7 +109,6 @@ location. The full route list is in the [API reference](docs/api.md).
 | [`apps/api`](apps/api)                   | Hono API: authentication, business rules, database writes.     |
 | [`apps/web`](apps/web)                   | Next.js dashboard for municipal staff.                         |
 | [`apps/citizen`](apps/citizen)           | Expo app for citizens: trucks, reports, waste-sorting lessons. |
-| [`apps/server`](apps/server)             | `json-server` mock with sample trucks and collections.         |
 | [`packages/database`](packages/database) | Drizzle schema, migrations, setup and seed scripts.            |
 | [`packages/email`](packages/email)       | React Email templates.                                         |
 | [`datasets`](datasets)                   | Marimo notebooks on public waste and population data.          |

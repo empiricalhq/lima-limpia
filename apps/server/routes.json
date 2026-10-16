@@ -1,4 +1,0 @@
-{
-  "/api/v1/*": "/$1",
-  "/users/me/progress": "/users/me"
-}

@@ -15,7 +15,6 @@
 Each workspace has its own readme for running and building it:
 [`apps/api`](../apps/api/readme.md), [`apps/web`](../apps/web/readme.md),
 [`apps/citizen`](../apps/citizen/readme.md),
-[`apps/server`](../apps/server/readme.md),
 [`packages/database`](../packages/database/readme.md),
 [`packages/email`](../packages/email/readme.md), and
 [`datasets`](../datasets/readme.md).
