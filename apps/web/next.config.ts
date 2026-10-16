@@ -2,8 +2,8 @@ import path from 'node:path';
 import createMDX from '@next/mdx';
 import type { NextConfig } from 'next';
 
-// For Cloudflare CI:
-// TODO: I need to stabilize this better.
+// Next.js and Turbopack trace from the monorepo root in development. A build elsewhere sets
+// USE_MONOREPO_PATHS=true to do the same.
 const useMonorepoPaths = process.env.NODE_ENV === 'development' || process.env.USE_MONOREPO_PATHS === 'true';
 const monorepoRoot = path.join(__dirname, '..', '..');
 

@@ -13,13 +13,7 @@ export interface AuthContext {
   roles: string[];
 }
 
-/**
- * Better Auth's global `user.role` is not the source of staff access checks; organization
- * membership is. `getActiveMemberRole` is called outside the try/catch below on purpose: it
- * throws only when the lookup itself fails (5xx, connection error), not when the user genuinely
- * has no role (see `isMemberRoleAbsent`), so that failure must propagate and fail the request
- * instead of being read here as "no user" and signing them out.
- */
+/** A failed role lookup must fail the request, not masquerade as an unauthenticated user. */
 export const getAuth = cache(async (): Promise<AuthContext | null> => {
   let session: Awaited<ReturnType<typeof api.auth.getSession>>;
 

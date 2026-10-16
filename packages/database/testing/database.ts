@@ -8,7 +8,6 @@ import { serve } from './serve.ts';
 
 const MIGRATIONS_DIR = join(import.meta.dir, '..', 'migrations');
 const HOST = '127.0.0.1';
-// The password-reset tests send the web dashboard's origin as the redirect target.
 const WEB_ORIGIN = 'http://localhost:3000';
 
 export interface TestDatabase {

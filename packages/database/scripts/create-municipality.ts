@@ -84,17 +84,7 @@ async function collectUserInput() {
   );
 }
 
-/**
- * Creates one municipality (an organization) and its first owner. Every municipality starts this
- * way: `allowUserToCreateOrganization` is off, so no HTTP caller can create one.
- *
- * The owner is created through the admin plugin's `createUser`, not `signUpEmail`, so `user.role`
- * lands on `'owner'` (an `AppRole`) instead of the default `'user'`. The organization and its
- * owner membership are then written directly, in one transaction, rather than through Better
- * Auth's `createOrganization`: that endpoint runs on Better Auth's own connection, which cannot
- * join a transaction held open on `db`, and the two rows must land together or not at all, the
- * same way `insertMember` writes a staff member's row (see ARCHITECTURE.md).
- */
+/** Creates one municipality and its first owner. No HTTP caller can create one. See docs/authentication.md. */
 export async function bootstrapOwner(input: {
   municipalityName: string;
   municipalitySlug: string;

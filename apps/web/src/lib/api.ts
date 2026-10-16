@@ -134,11 +134,7 @@ const admin = {
 
 const auth = {
   getSession: () => request<AuthContext | null>('/api/auth/get-session'),
-  /**
-   * Null when the user genuinely has no active member role (no organization, or not a member of
-   * it), e.g. a citizen. Rethrows on any other failure (5xx, connection error) — that is a failed
-   * lookup, not a "no role" answer, and callers must not treat it as one.
-   */
+  /** Null for a user with no active member role (a citizen). Rethrows on any other failure. */
   getActiveMemberRole: async (): Promise<MemberRole | null> => {
     try {
       return await request<MemberRole>('/api/auth/organization/get-active-member-role');

@@ -28,15 +28,7 @@ export async function performSignInRequest(
   return { sessionCookie };
 }
 
-/**
- * Better Auth's global `user.role` is not the source of staff access checks; organization
- * membership is. Call this after `setupOrganization` has set the active organization, so a
- * citizen (no organization) and a staff member (a role on the active organization) are told apart
- * correctly.
- *
- * A failed lookup (5xx, connection error) is not the same as a real "no role" answer — reporting
- * it as "unauthorized" would blame the visitor's permissions for what is really an outage.
- */
+/** Call after `setupOrganization`. A failed lookup is an outage, not an unauthorized user. */
 export async function validateStaffMembership(
   sessionCookie: string,
   baseUrl: string = ENV.API_BASE_URL,
@@ -65,12 +57,7 @@ export async function validateStaffMembership(
   }
 }
 
-/**
- * `/organization/list` always answers 200 with an array for any valid session — an empty array
- * *is* "no organization", not a non-2xx status. So any non-ok response here (a 5xx, an outage) is
- * a failed lookup, not a real "no organization" answer, and must fail sign-in the same way
- * `validateStaffMembership` does, not silently fall through as a citizen.
- */
+/** An empty 200 response means citizen. A non-OK response means the lookup failed. */
 export async function setupOrganization(sessionCookie: string, baseUrl: string = ENV.API_BASE_URL): Promise<string> {
   let orgListResponse: Response;
 
@@ -95,7 +82,6 @@ export async function setupOrganization(sessionCookie: string, baseUrl: string =
     return sessionCookie;
   }
 
-  // set the first organization as active
   const [firstOrg] = organizations;
 
   const setActiveResponse = await fetch(`${baseUrl}/api/auth/organization/set-active`, {

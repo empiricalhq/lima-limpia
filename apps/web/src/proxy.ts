@@ -32,7 +32,6 @@ async function fetchMemberRoles(headers: HeadersInit): Promise<string[] | null> 
   }
 }
 
-/** Better Auth's global `user.role` is not the source of staff access checks; organization membership is. */
 async function getAuthFromRequest(request: NextRequest): Promise<AuthLookup> {
   const token = request.cookies.get('better-auth.session_token')?.value;
   if (!token) {

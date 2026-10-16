@@ -108,19 +108,7 @@ export class AdminService extends BaseService {
     }
   }
 
-  /**
-   * Create a better-auth user and add them to the organization with the given role, through the
-   * shared `createStaffUser` step (see `@lima-garbage/database`): better-auth's global user role
-   * alone does not grant access to org-scoped routes, which resolve roles from organization
-   * membership (see `resolveActiveOrganizationRoles` in shared/middleware/auth.ts). A user
-   * created without membership can never sign in past those checks, so a failed membership write
-   * deletes the user rather than leaving one behind.
-   *
-   * `createStaffUser` raises a better-auth `APIError` from `createUser` (a taken email) or a raw
-   * pg error from the membership insert (a duplicate membership, a deleted organization), since
-   * that insert runs as parameterized SQL rather than through better-auth's `addMember`. Route
-   * each to the handler that knows its shape, or the pg error falls through as an unmapped 500.
-   */
+  /** `createStaffUser` raises a Better Auth `APIError` or a raw pg error. Map both so the pg error does not become an unmapped 500. */
   private async createOrganizationUser(
     data: { name: string; email: string; password: string; role: Exclude<AppRole, 'citizen'> },
     organizationId: string,

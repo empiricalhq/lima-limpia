@@ -33,7 +33,6 @@ export class Auth {
 
     let cookie = this.extractCookie(signInRes.headers);
 
-    // handle organization setup for non-citizen users
     const userConfig = this.getUserConfig(email);
     if (userConfig?.role !== 'citizen') {
       cookie = await this.setupOrganization(cookie);

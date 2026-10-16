@@ -2,18 +2,7 @@ import { type Context, Hono, type MiddlewareHandler } from 'hono';
 import { notFound } from '@/internal/shared/utils/response';
 import type { AuthService } from './service';
 
-/**
- * Better Auth's organization plugin grants an organization's creator (`owner`, the plugin's
- * `creatorRole` default) every permission on member-role endpoints regardless of `roles`/`ac`
- * (`allowCreatorAllPermissions`, on by default): an owner can call `update-member-role` and
- * promote any member, including to owner, no matter how `roles` is configured. Closing individual
- * endpoints at the access-control level cannot reach this case, so only the `/api/auth/*` paths
- * this app's own clients (apps/web, apps/citizen) actually call are mounted here; every other
- * endpoint the `organization` and `admin` plugins register — including `update-member-role`,
- * `invite-member`, `accept-invitation`, `get-full-organization`, and the `admin` plugin's own
- * `set-role`/`create-user`/`ban-user`/`impersonate-user`/`remove-user`/`set-user-password` —
- * returns 404 before Better Auth's handler ever runs.
- */
+/** The plugin access controls cannot close the organization creator's grants. Every unlisted path therefore answers 404. */
 const ALLOWED_ROUTES: ReadonlyArray<{ method: 'GET' | 'POST'; path: string; refuseImpersonated?: true }> = [
   { method: 'GET', path: '/get-session' },
   { method: 'POST', path: '/sign-in/email' },

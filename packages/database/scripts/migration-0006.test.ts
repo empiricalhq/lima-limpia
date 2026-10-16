@@ -45,9 +45,8 @@ interface DuplicateMemberPair {
 }
 
 /**
- * Inserts an organization, a user, and two `member` rows duplicating the same
- * (organizationId, userId) pair the pre-0006 schema never rejected: one with an earlier
- * `createdAt` (role `supervisor`), one later (role `admin`).
+ * Inserts an organization, a user, and two `member` rows for the same (organizationId, userId)
+ * pair: an earlier one with role `supervisor`, a later one with role `admin`.
  */
 async function insertDuplicateMemberPair(db: PGlite): Promise<DuplicateMemberPair> {
   const { rows: organizationRows } = await db.query<{ id: string }>(
@@ -62,12 +61,8 @@ async function insertDuplicateMemberPair(db: PGlite): Promise<DuplicateMemberPai
   // biome-ignore lint/style/noNonNullAssertion: the insert above always returns one row.
   const userId = userRows[0]!.id;
 
-  // Better Auth's kysely adapter builds `SELECT * FROM member WHERE "userId" = $1 AND
-  // "organizationId" = $2` with no ORDER BY and no LIMIT, so it returns whichever row Postgres
-  // happens to return first; verified against this same pre-migration schema that both an index
-  // scan (via the pre-migration "member_user_org_idx") and a forced sequential scan return the
-  // earliest-created row first for rows that have never been updated. The migration's dedupe
-  // keeps that same row.
+  // Better Auth reads a membership with no ORDER BY, so it gets the earliest-created row. The
+  // dedupe must keep that same row.
   const { rows: earliestRows } = await db.query<{ id: string }>(
     `INSERT INTO member (id, "userId", "organizationId", role, "createdAt") VALUES (gen_random_uuid(), $1, $2, 'supervisor', now() - interval '1 day') RETURNING id`,
     [userId, organizationId],
