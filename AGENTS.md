@@ -10,7 +10,8 @@ The code map is in [ARCHITECTURE.md](ARCHITECTURE.md). Checks are in
 - Follow Handler, Service, Repository in each domain. Register new dependencies
   in `container.ts`.
 - Services throw `AppError` subclasses. They do not return raw errors.
-- Services and handlers do not call `db.query`. Add a repository method.
+- Services and handlers do not query a database client (`db`, `pool`, `client`,
+  a transaction handle). Add a repository method.
 - Every repository method on a tenant table takes a scope as its first argument
   and builds its SQL with `tenantQuery`.
 - Authorize staff by `member.role`. Do not read `user.role` for staff checks.

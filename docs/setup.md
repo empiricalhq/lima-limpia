@@ -123,13 +123,17 @@ The citizen app needs a development build, not Expo Go. See
 `.env` and no environment variables. Each test run starts an in-memory
 [PGlite](https://pglite.dev) database, applies every migration in
 [`packages/database/migrations`](../packages/database/migrations) to it, serves
-it on a free local port, and discards it when the run ends. The API runner and
-the database package's Bun preload set `DATABASE_URL` and the other variables
-the API needs, replacing any value of those variables in your environment. The
-code is in [`packages/database/testing`](../packages/database/testing).
+it on a free local port, and discards it when the run ends. Nothing is written
+to disk, so no run leaves a database behind, and runs do not share data.
 
-The API test server listens on port 4000. Stop a running development API first,
-or the tests send their requests to it.
+The API runner also starts the API server on a free local port and waits for
+`/api/health` before it runs the tests. It sets `PORT`, `API_BASE_URL` and the
+other origin variables for that port. Both the API runner and the database
+package's Bun preload set `DATABASE_URL` and the other variables the API needs,
+replacing any value of those variables in your environment. Two runs started at
+the same time share nothing, and a development API on port 4000 does not
+interfere. The code is in
+[`packages/database/testing`](../packages/database/testing).
 
 To run the test suites alone:
 

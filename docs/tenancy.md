@@ -54,7 +54,12 @@ execution the marker becomes `alias.organization_id = $n`.
 
 The lint rule
 [`no-service-database-access.grit`](../biome-plugins/no-service-database-access.grit)
-rejects `db.query` in services and handlers, so SQL goes through repositories.
+rejects `query`, `connect`, `getClient` and `withTransaction` calls in services
+and handlers, so SQL goes through repositories. It finds the database client by
+its declared type, not its name: a receiver declared with a type imported from
+`pg` or the shared database module (`Pool`, `PoolClient`, `DatabaseInterface`),
+or the callback parameter of `withTransaction`. A receiver named `db` is always
+rejected. Other receivers, such as a request's `query`, pass.
 
 A row outside the caller's scope reads as missing: `404` for one resource, an
 empty list for a collection.
