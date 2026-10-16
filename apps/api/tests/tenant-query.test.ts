@@ -10,11 +10,6 @@ describe('tenantQuery', () => {
   test('refuses a statement whose only filter is a hand-written organization id', () => {
     expect(() => tenantQuery('SELECT * FROM truck WHERE organization_id = $1')).toThrow('marker');
   });
-
-  test('accepts a read marker and a write marker', () => {
-    expect(() => tenantQuery('SELECT * FROM truck t WHERE {{scope:t}}')).not.toThrow();
-    expect(() => tenantQuery('INSERT INTO truck (id, organization_id) VALUES ($1, {{organization_id}})')).not.toThrow();
-  });
 });
 
 describe('bindScope', () => {

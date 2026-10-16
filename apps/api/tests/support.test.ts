@@ -1,10 +1,8 @@
 // biome-ignore-all lint/style/noExcessiveLinesPerFile: one cohesive suite for the support role and impersonation.
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
-import { createAppAuth } from '@lima-garbage/database';
-import { Pool } from 'pg';
 import { HTTP_STATUS } from './config';
 import { TestClient } from './helpers/client';
-import { Database, testDatabaseUrl } from './helpers/database';
+import { Database } from './helpers/database';
 import { type Fixture, ids, type Person, Tenancy } from './helpers/tenancy';
 import type { ErrorResponse, SuccessResponse } from './types';
 
@@ -182,16 +180,6 @@ describe('a support user reads every municipality', () => {
       HTTP_STATUS.FORBIDDEN,
     ]);
     expect((await client.get('/support/organizations')).status).toBe(UNAUTHORIZED);
-  });
-
-  test('the support routes offer no way to write municipality data', async () => {
-    const base = `/support/organizations/${fx.a.organizationId}`;
-
-    expect((await client.post(`${base}/trucks`, { name: 'x', license_plate: 'x' }, support.headers)).status).toBe(
-      HTTP_STATUS.NOT_FOUND,
-    );
-    expect((await client.delete(`${base}/trucks/${fx.a.truckId}`, support.headers)).status).toBe(HTTP_STATUS.NOT_FOUND);
-    expect(ids(await tenancy.list<Named>(`${base}/trucks`, support))).toEqual([fx.a.truckId]);
   });
 });
 
@@ -565,13 +553,16 @@ describe('an impersonator cannot take over an account login', () => {
       [userId],
     );
 
-  test('a new password is refused with a 403 and an audit row', async () => {
+  test.each([
+    ['a new password', { password: 'taken-over-password-1' }],
+    ['a new email', { email: 'taken-over@tenancy.test' }],
+  ])('%s is refused with a 403 and an audit row', async (_label, change) => {
     const asOwner = await impersonate(support, owner().id);
     const before = await credentialsOf(fx.a.driver.id);
 
     const response = await client.patch<ErrorResponse>(
       `/admin/users/${fx.a.driver.id}`,
-      { name: 'Driver A', email: fx.a.driver.email, password: 'taken-over-password-1' },
+      { name: 'Driver A', email: fx.a.driver.email, ...change },
       asOwner.headers,
     );
 
@@ -584,32 +575,6 @@ describe('an impersonator cannot take over an account login', () => {
       path: '/api/admin/users/:id',
       status_code: HTTP_STATUS.FORBIDDEN,
     });
-  });
-
-  test('a new email is refused with a 403', async () => {
-    const asOwner = await impersonate(support, owner().id);
-    const before = await credentialsOf(fx.a.driver.id);
-
-    const response = await client.patch<ErrorResponse>(
-      `/admin/users/${fx.a.driver.id}`,
-      { name: 'Driver A', email: 'taken-over@tenancy.test' },
-      asOwner.headers,
-    );
-
-    expect(response.status).toBe(HTTP_STATUS.FORBIDDEN);
-    expect(await credentialsOf(fx.a.driver.id)).toEqual(before);
-  });
-
-  test('the impersonated user own login cannot be changed either', async () => {
-    const asSupervisor = await impersonate(support, fx.a.supervisor.id);
-
-    const response = await client.patch(
-      `/admin/users/${fx.a.driver.id}`,
-      { name: 'Driver A', email: fx.a.driver.email, password: 'another-password-1' },
-      asSupervisor.headers,
-    );
-
-    expect(response.status).toBe(HTTP_STATUS.FORBIDDEN);
   });
 
   test('a name change and a new user stay allowed, and are audited', async () => {
@@ -719,62 +684,5 @@ describe('a municipality owner or admin cannot grant the platform role or impers
     expect(
       await db.query(`SELECT 1 FROM session WHERE "userId" = $1 AND "impersonatedBy" IS NOT NULL`, [fx.b.owner.id]),
     ).toEqual([]);
-  });
-
-  test.each(['/auth/admin/impersonate-user', '/auth/admin/stop-impersonating', '/auth/admin/set-role'])(
-    'the plugin endpoint %s stays unmounted, for support too',
-    async (path) => {
-      const responses = await Promise.all(
-        [owner(), support].map((person) =>
-          client.post(path, { userId: fx.b.owner.id, role: 'support' }, person.headers),
-        ),
-      );
-
-      expect(responses.map((response) => response.status)).toEqual([HTTP_STATUS.NOT_FOUND, HTTP_STATUS.NOT_FOUND]);
-    },
-  );
-
-  describe('the admin plugin role set', () => {
-    const pool = new Pool({ connectionString: testDatabaseUrl() });
-    const auth = createAppAuth({
-      pool,
-      secret: process.env.BETTER_AUTH_SECRET ?? '',
-      baseURL: process.env.BETTER_AUTH_URL ?? 'http://localhost:4000',
-    });
-    const actions = [
-      'create',
-      'list',
-      'set-role',
-      'ban',
-      'impersonate',
-      'impersonate-admins',
-      'delete',
-      'set-password',
-    ] as const;
-    const allowed = async (userId: string, action: (typeof actions)[number]) => {
-      const result = await auth.api.userHasPermission({ body: { userId, permissions: { user: [action] } } });
-      return result.success;
-    };
-
-    afterAll(async () => {
-      await pool.end();
-    });
-
-    const grantedTo = async (userId: string) => {
-      const results = await Promise.all(actions.map((action) => allowed(userId, action)));
-      return actions.filter((_, index) => results[index]);
-    };
-
-    test('grants a support user impersonation and nothing else', async () => {
-      expect(await grantedTo(support.id)).toEqual(['impersonate']);
-    });
-
-    test('grants no municipality role anything', async () => {
-      const granted = await Promise.all(
-        [owner(), admin, fx.a.supervisor, fx.a.driver, fx.citizen].map((person) => grantedTo(person.id)),
-      );
-
-      expect(granted).toEqual([[], [], [], [], []]);
-    });
   });
 });

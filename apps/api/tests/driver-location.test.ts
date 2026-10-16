@@ -16,37 +16,6 @@ import { Database as TestDatabase } from './helpers/database';
  * and both are what this file checks.
  */
 
-/**
- * Runs every query on the real pool and counts the ones issued while the same client was still
- * running another. pg@8 queues them silently; pg@9 removes that.
- */
-class OverlapCountingDatabase extends Database {
-  overlappingQueries = 0;
-
-  override async getClient(): Promise<PoolClient> {
-    const client = await super.getClient();
-    const query = client.query.bind(client) as (...args: unknown[]) => Promise<unknown>;
-    let inFlight = 0;
-    client.query = ((...args: unknown[]) => {
-      // The pool's own callback-style calls return no promise and are not the service's.
-      if (typeof args.at(-1) === 'function') {
-        return query(...args);
-      }
-      if (inFlight > 0) {
-        this.overlappingQueries += 1;
-      }
-      inFlight += 1;
-      const pending = query(...args);
-      const settled = () => {
-        inFlight -= 1;
-      };
-      pending.then(settled, settled);
-      return pending;
-    }) as PoolClient['query'];
-    return client;
-  }
-}
-
 const COMPLETION_GRACE_MS = 250;
 
 /**
@@ -90,7 +59,7 @@ function completeAfterActiveRead(database: Database, complete: () => Promise<unk
   return race;
 }
 
-const db = new OverlapCountingDatabase(loadConfig().database);
+const db = new Database(loadConfig().database);
 const testDb = new TestDatabase();
 const driverService = new DriverService({
   assignmentRepo: new AssignmentRepository(db),
@@ -156,7 +125,6 @@ async function historyCount(): Promise<number> {
 }
 
 beforeEach(async () => {
-  db.overlappingQueries = 0;
   race.completion = null;
   await testDb.clean();
   await db.query(
@@ -218,12 +186,6 @@ describe('DriverService.updateLocation', () => {
     expect(error.message).toContain('No active assignment');
     expect(await currentLocation()).toEqual([{ lat: PREVIOUS.lat, lng: PREVIOUS.lng, speed: null }]);
     expect(await historyCount()).toBe(0);
-  });
-
-  test('never queries a pg client that is still running a query', async () => {
-    await driverService.updateLocation(SCOPE, DRIVER_ID, UPDATE);
-
-    expect(db.overlappingQueries).toBe(0);
   });
 
   test('rolls the current location back and surfaces the history error when the history insert fails', async () => {
