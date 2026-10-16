@@ -53,6 +53,12 @@ includes the organization plugin's `organization/create`, `update-member-role`,
 plugin's `set-role`, `create-user`, `ban-user`, `impersonate-user`,
 `remove-user`, and `set-user-password`.
 
+The allowlist is the control, not the plugins' access-control settings. The
+organization plugin gives an organization's creator every permission on the
+member-role endpoints (`allowCreatorAllPermissions`), whatever `roles` says, so
+an owner could promote any member through `update-member-role` if it were
+mounted.
+
 The list is `ALLOWED_ROUTES` in
 [`handler.ts`](../apps/api/src/internal/domains/auth/handler.ts), and
 [API reference](api.md#authentication) tables it. To call another Better Auth
@@ -76,7 +82,7 @@ plugin options:
 | `POST /api/auth/sign-up/email`                        | `user.role = 'citizen'` and no membership.                                        |
 | `POST /api/admin/users` and `POST /api/admin/drivers` | `user.role` and `member.role` together, for a new staff user.                     |
 | `setup:municipality`                                  | The organization, its owner's `user.role = 'owner'`, and `member.role = 'owner'`. |
-| `db:seed`                                             | Fixture staff users, through `ensureStaffUser`.                                   |
+| `db:seed`                                             | Fixture staff users, through `ensureStaffUser`. A user that exists is left as is. |
 | `setup:support`                                       | `user.role = 'support'`.                                                          |
 
 `setup:support --revoke` resets `user.role` to `citizen`. No HTTP route changes
@@ -90,6 +96,14 @@ transaction on the shared `pg` pool. If the membership write fails, the user it
 just created is deleted, so no staff user exists without a membership. A unique
 constraint on `member (userId, organizationId)` allows one membership per user
 per organization.
+
+Better Auth's own `addMember` and `createOrganization` run on Better Auth's
+connection, which cannot join a transaction held on the shared pool, so no code
+calls them. `setup:municipality`, `AdminService.createOrganizationUser`, and
+`db:seed` are the only writers of `organization` and `member` rows, and each
+writes them with a direct insert. `setup:municipality` creates its owner through
+`createUser`, not `signUpEmail`, so `user.role` is `owner` and not the default
+`user`.
 
 `canManageRole` decides which role an actor may assign:
 
