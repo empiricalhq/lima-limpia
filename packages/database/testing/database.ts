@@ -1,4 +1,5 @@
 // biome-ignore-all lint/style/useNamingConvention: names must match environment variables.
+import { createServer } from 'node:net';
 import { join } from 'node:path';
 import { PGlite } from '@electric-sql/pglite';
 import { drizzle } from 'drizzle-orm/pglite';
@@ -7,6 +8,8 @@ import { serve } from './serve.ts';
 
 const MIGRATIONS_DIR = join(import.meta.dir, '..', 'migrations');
 const HOST = '127.0.0.1';
+// The password-reset tests send the web dashboard's origin as the redirect target.
+const WEB_ORIGIN = 'http://localhost:3000';
 
 export interface TestDatabase {
   /** A connection string for `pg`. PGlite ignores the user, password and database name. */
@@ -30,6 +33,33 @@ export async function startTestDatabase(): Promise<TestDatabase> {
       await server.stop();
       await db.close();
     },
+  };
+}
+
+export function freePort(): Promise<number> {
+  return new Promise((resolve, reject) => {
+    const probe = createServer();
+    probe.once('error', reject);
+    probe.listen(0, HOST, () => {
+      const address = probe.address();
+      const port = typeof address === 'object' && address ? address.port : undefined;
+      probe.close(() => (port ? resolve(port) : reject(new Error('The OS gave no free port'))));
+    });
+  });
+}
+
+/**
+ * Returns the environment that makes the API server and tests use `port`, so
+ * simultaneous runs do not share a port. Merge it over `testEnvironment`.
+ */
+export function apiEnvironment(port: number): Record<string, string> {
+  const origin = `http://localhost:${port}`;
+  return {
+    PORT: String(port),
+    API_BASE_URL: `${origin}/api`,
+    BETTER_AUTH_URL: origin,
+    TRUSTED_ORIGINS: `${WEB_ORIGIN},${origin}`,
+    CORS_ORIGINS: `${WEB_ORIGIN},${origin}`,
   };
 }
 

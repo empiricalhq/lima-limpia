@@ -1,33 +1,57 @@
 import process from 'node:process';
-import { startTestDatabase, testEnvironment } from '@lima-garbage/database/testing';
+import {
+  apiEnvironment,
+  freePort,
+  startTestDatabase,
+  type TestDatabase,
+  testEnvironment,
+} from '@lima-garbage/database/testing';
 
-const SERVER_STARTUP_DELAY_MS = 6000;
+const SERVER_READY_TIMEOUT_MS = 30_000;
+const SERVER_POLL_MS = 100;
 const TIMEOUT_MS = process.env.CI === 'true' ? 25_000 : 15_000;
 
-const database = await startTestDatabase();
-const env = { ...process.env, ...testEnvironment(database.url) };
-
-const server = Bun.spawn(['bun', 'src/cmd/server.ts'], {
-  env,
-  stderr: 'inherit',
-  stdout: 'inherit',
-});
-
-await Bun.sleep(SERVER_STARTUP_DELAY_MS);
-
-const tests = Bun.spawn(['bun', 'test', '--sequential', '--timeout', TIMEOUT_MS.toString()], {
-  env,
-  stderr: 'inherit',
-  stdout: 'inherit',
-});
-
-const code = await tests.exited;
-
-try {
-  server.kill();
-} catch {
-  // Cleanup can race with a server that has already exited.
+async function waitForServer(healthUrl: string): Promise<void> {
+  const deadline = Date.now() + SERVER_READY_TIMEOUT_MS;
+  while (Date.now() < deadline) {
+    try {
+      // biome-ignore lint/performance/noAwaitInLoops: each probe waits for the previous one to fail.
+      const response = await fetch(healthUrl);
+      if (response.ok) {
+        return;
+      }
+    } catch {
+      // The server is not listening yet.
+    }
+    // biome-ignore lint/performance/noAwaitInLoops: the next probe waits for this delay.
+    await Bun.sleep(SERVER_POLL_MS);
+  }
+  throw new Error(`The API server did not answer ${healthUrl} within ${SERVER_READY_TIMEOUT_MS} ms`);
 }
 
-await database.stop();
+let database: TestDatabase | undefined;
+let server: Bun.Subprocess | undefined;
+let code: number | undefined;
+try {
+  database = await startTestDatabase();
+  const port = await freePort();
+  const env = { ...process.env, ...testEnvironment(database.url), ...apiEnvironment(port) };
+
+  server = Bun.spawn(['bun', 'src/cmd/server.ts'], {
+    env,
+    stderr: 'inherit',
+    stdout: 'inherit',
+  });
+  await waitForServer(`${env.API_BASE_URL}/health`);
+
+  const tests = Bun.spawn(['bun', 'test', '--sequential', '--timeout', TIMEOUT_MS.toString()], {
+    env,
+    stderr: 'inherit',
+    stdout: 'inherit',
+  });
+  code = await tests.exited;
+} finally {
+  server?.kill();
+  await database?.stop();
+}
 process.exit(code ?? 1);
