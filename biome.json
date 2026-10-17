@@ -7,12 +7,23 @@
   },
   "files": {
     "ignoreUnknown": false,
-    "includes": ["**", "!!**/node_modules", "!!**/.next"]
+    "includes": [
+      "**",
+      "!!**/node_modules",
+      "!!**/.next",
+      "!!**/*.json",
+      "!!**/*.jsonc"
+    ]
   },
   "formatter": {
     "enabled": true,
     "indentStyle": "space",
     "lineWidth": 120
+  },
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
+    }
   },
   "linter": {
     "enabled": true,
@@ -58,7 +69,10 @@
       }
     },
     {
-      "includes": ["**/internal/domains/**/service.ts", "**/internal/domains/**/handler.ts"],
+      "includes": [
+        "**/internal/domains/**/service.ts",
+        "**/internal/domains/**/handler.ts"
+      ],
       "plugins": ["./biome-plugins/no-service-database-access.grit"]
     },
     {
