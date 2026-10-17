@@ -1,4 +1,4 @@
 {
   "outputDirectory": "dist",
-  "ignoreCommand": "git diff --quiet \"${VERCEL_GIT_PREVIOUS_SHA:-HEAD^}\" HEAD -- . ../../packages/database ../../packages/email ../../bun.lock"
+  "ignoreCommand": "git diff --quiet \"${VERCEL_GIT_PREVIOUS_SHA:-HEAD^}\" HEAD -- . ../../packages/database ../../packages/email ../../bun.lock || exit 1"
 }
