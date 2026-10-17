@@ -14,14 +14,14 @@ They run on a host with no database.
 Run these from the repository root before opening a pull request:
 
 ```sh
-bun run format
+mise run install
 mise run check
 ```
 
-`bun run lint` runs `biome lint . && oxlint` across the workspace. Biome checks
-the code and `oxlint` checks React, including the React Compiler rules in the
-citizen app. Each workspace also has a `lint` script that runs Biome alone for
-targeted checks.
+`mise run fix` applies safe formatting and lint fixes. `mise run lint`,
+`mise run typecheck`, `mise run test`, and `mise run build` run each part of the
+check separately. Biome checks the code, oxfmt checks Markdown, YAML, and JSON,
+and oxlint checks React, including the React Compiler rules in the citizen app.
 
 Notebooks in `datasets` have their own check:
 
@@ -30,17 +30,16 @@ cd datasets && mise run fix
 ```
 
 [`mise.toml`](mise.toml) defines `mise run check`, which runs the same checks as
-CI: format, lint, typecheck, the web build, and the API and database tests. The
-tests bring their own database, as [Setup](docs/setup.md#run-the-tests)
-describes. Each check also runs alone: `mise run check:format`, `check:lint`,
-`check:typecheck`, `check:web-build` and `check:test`.
+CI: format, lint, typecheck, the API and web builds, and the API, database, and
+web tests. The tests bring their own database, as
+[Setup](docs/setup.md#run-the-tests) describes.
 
 ## Documentation
 
-Markdown is wrapped at 80 columns. Format it with Prettier:
+Markdown is wrapped at 80 columns. Format it with the repository fix task:
 
 ```sh
-bunx prettier --print-width 80 --prose-wrap always --write '*.md' 'docs/*.md' 'apps/*/readme.md' 'packages/*/readme.md' 'datasets/readme.md'
+mise run fix
 ```
 
 ## Pull requests

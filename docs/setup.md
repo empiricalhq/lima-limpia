@@ -119,8 +119,8 @@ The citizen app needs a development build, not Expo Go. See
 
 ## Run the tests
 
-`mise run check:test`, and therefore `mise run check`, needs no PostgreSQL, no
-`.env` and no environment variables. Each test run starts an in-memory
+`mise run test`, and therefore `mise run check`, needs no PostgreSQL, no `.env`
+and no environment variables. Each test run starts an in-memory
 [PGlite](https://pglite.dev) database, applies every migration in
 [`packages/database/migrations`](../packages/database/migrations) to it, serves
 it on a free local port, and discards it when the run ends. Nothing is written
