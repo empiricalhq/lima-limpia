@@ -1,22 +1,18 @@
 {
   "name": "workspaces",
   "private": true,
-  "packageManager": "bun@1.4.3",
   "workspaces": [
     "packages/database",
     "packages/email",
     "apps/*"
   ],
   "scripts": {
-    "clean": "rm -rf node_modules packages/database/node_modules apps/citizen/node_modules bun.lock packages/database/bun.lock apps/citizen/bun.lock",
-    "format": "biome format --write .",
-    "format:check": "biome format .",
-    "lint": "biome lint . && oxlint",
-    "typecheck": "bun --filter '*' typecheck"
+    "clean": "rm -rf node_modules packages/database/node_modules apps/citizen/node_modules bun.lock packages/database/bun.lock apps/citizen/bun.lock"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.15",
     "@types/bun": "^1.4.3",
+    "oxfmt": "0.73.0",
     "oxlint": "1.88.0"
   },
   "resolutions": {
