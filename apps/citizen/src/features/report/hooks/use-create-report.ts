@@ -1,6 +1,6 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { api } from "@/lib/api";
-import type { CreateReportInput } from "@/types";
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { api } from '@/lib/api';
+import type { CreateReportInput } from '@/types';
 
 export function useCreateReport() {
   const queryClient = useQueryClient();
@@ -8,7 +8,7 @@ export function useCreateReport() {
   return useMutation({
     mutationFn: (input: CreateReportInput) => api.createReport(input),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["reports"] });
+      queryClient.invalidateQueries({ queryKey: ['reports'] });
     },
   });
 }

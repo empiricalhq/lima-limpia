@@ -1,6 +1,8 @@
 {
   "name": "@lima-garbage/citizens",
   "version": "1.0.0",
+  "private": true,
+  "main": "expo-router/entry",
   "scripts": {
     "start": "expo start",
     "android": "expo run:android",
@@ -47,11 +49,6 @@
     "@types/react": "~19.3.0",
     "typescript": "7.0.2"
   },
-  "main": "expo-router/entry",
-  "private": true,
-  "trustedDependencies": [
-    "unrs-resolver"
-  ],
   "expo": {
     "install": {
       "exclude": [
@@ -59,5 +56,8 @@
         "@types/react"
       ]
     }
-  }
+  },
+  "trustedDependencies": [
+    "unrs-resolver"
+  ]
 }

@@ -1,9 +1,9 @@
-import { deleteItemAsync, getItemAsync, setItemAsync } from "expo-secure-store";
-import type { QuizProgress, User } from "@/types";
+import { deleteItemAsync, getItemAsync, setItemAsync } from 'expo-secure-store';
+import type { QuizProgress, User } from '@/types';
 
 const KEYS = {
-  USER: "user",
-  QUIZ_PROGRESS: "quiz_progress",
+  USER: 'user',
+  QUIZ_PROGRESS: 'quiz_progress',
 } as const;
 
 class Storage {
@@ -31,14 +31,14 @@ class Storage {
       }
 
       if (!(parsed.id && parsed.email && parsed.name)) {
-        console.warn("Invalid user structure, clearing");
+        console.warn('Invalid user structure, clearing');
         await this.delete(KEYS.USER);
         return null;
       }
 
       return parsed;
     } catch (error) {
-      console.error("Failed to get user from storage", error);
+      console.error('Failed to get user from storage', error);
       await this.delete(KEYS.USER);
       return null;
     }
@@ -48,8 +48,8 @@ class Storage {
     try {
       await this.set(KEYS.USER, user);
     } catch (error) {
-      console.error("Failed to set user in storage", error);
-      throw new Error("No se pudo guardar el usuario", { cause: error });
+      console.error('Failed to set user in storage', error);
+      throw new Error('No se pudo guardar el usuario', { cause: error });
     }
   }
 
@@ -57,7 +57,7 @@ class Storage {
     try {
       await this.delete(KEYS.USER);
     } catch (error) {
-      console.error("Failed to clear auth from storage", error);
+      console.error('Failed to clear auth from storage', error);
     }
   }
 
@@ -76,22 +76,17 @@ class Storage {
       }
 
       if (
-        typeof parsed.streak !== "number" ||
-        typeof parsed.totalAnswered !== "number" ||
-        typeof parsed.correctAnswers !== "number"
+        typeof parsed.streak !== 'number' ||
+        typeof parsed.totalAnswered !== 'number' ||
+        typeof parsed.correctAnswers !== 'number'
       ) {
-        console.warn(
-          "Invalid quiz progress structure, returning default value.",
-        );
+        console.warn('Invalid quiz progress structure, returning default value.');
         return defaultValue;
       }
 
       return parsed;
     } catch (error) {
-      console.error(
-        "CRITICAL: Failed to get quiz progress from storage. User data was NOT reset.",
-        error,
-      );
+      console.error('CRITICAL: Failed to get quiz progress from storage. User data was NOT reset.', error);
       return defaultValue;
     }
   }
@@ -100,8 +95,8 @@ class Storage {
     try {
       await this.set(KEYS.QUIZ_PROGRESS, progress);
     } catch (error) {
-      console.error("Failed to set quiz progress in storage", error);
-      throw new Error("No se pudo guardar el progreso", { cause: error });
+      console.error('Failed to set quiz progress in storage', error);
+      throw new Error('No se pudo guardar el progreso', { cause: error });
     }
   }
 
@@ -109,7 +104,7 @@ class Storage {
     try {
       await Promise.all([this.clearAuth(), this.delete(KEYS.QUIZ_PROGRESS)]);
     } catch (error) {
-      console.error("Failed to clear all data", error);
+      console.error('Failed to clear all data', error);
     }
   }
 }

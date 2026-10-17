@@ -1,11 +1,5 @@
-import { useEffect } from "react";
-import {
-  cancelAnimation,
-  useAnimatedStyle,
-  useSharedValue,
-  withRepeat,
-  withTiming,
-} from "react-native-reanimated";
+import { useEffect } from 'react';
+import { cancelAnimation, useAnimatedStyle, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated';
 
 export function usePulsingAnimation(duration = 1000) {
   const opacity = useSharedValue(0.3);

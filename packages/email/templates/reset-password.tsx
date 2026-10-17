@@ -13,12 +13,15 @@ import {
   Text,
 } from '@react-email/components';
 
+const previewYear = new Date().getFullYear();
+
 interface PasswordResetEmailProps {
   userName?: string;
   resetUrl: string;
+  currentYear?: number;
 }
 
-function PasswordResetEmail({ userName, resetUrl }: PasswordResetEmailProps) {
+function PasswordResetEmail({ userName, resetUrl, currentYear = previewYear }: PasswordResetEmailProps) {
   const previewText = 'Restablecer tu contraseña en Lima Limpia';
 
   return (
@@ -59,7 +62,7 @@ function PasswordResetEmail({ userName, resetUrl }: PasswordResetEmailProps) {
             </Text>
             <Hr className="mx-0 my-[26px] w-full border border-[#eaeaea] border-solid" />
             <Text className="text-[#666666] text-[12px] leading-6 text-center">
-              © {new Date().getFullYear()} Lima Limpia. Todos los derechos reservados.
+              © {currentYear} Lima Limpia. Todos los derechos reservados.
             </Text>
           </Container>
         </Body>

@@ -1,12 +1,6 @@
-import type React from "react";
-import {
-  StyleSheet,
-  Text,
-  TextInput,
-  type TextInputProps,
-  View,
-} from "react-native";
-import { theme } from "@/theme";
+import type React from 'react';
+import { StyleSheet, Text, TextInput, type TextInputProps, View } from 'react-native';
+import { theme } from '@/theme';
 
 interface InputProps extends TextInputProps {
   label: string;
@@ -32,21 +26,21 @@ export const Input = ({
   </View>
 );
 
-Input.displayName = "Input";
+Input.displayName = 'Input';
 
 const styles = StyleSheet.create({
   label: {
     ...theme.typography.subhead,
     color: theme.colors.textPrimary,
-    marginBottom: theme.spacing["spacing-xs"],
+    marginBottom: theme.spacing['spacing-xs'],
   },
   input: {
     backgroundColor: theme.colors.backgroundSecondary,
     borderWidth: 1,
     borderColor: theme.colors.borderOutline,
-    borderRadius: theme.radius["radius-s"],
-    paddingHorizontal: theme.spacing["spacing-l"],
-    paddingVertical: theme.spacing["spacing-m"],
+    borderRadius: theme.radius['radius-s'],
+    paddingHorizontal: theme.spacing['spacing-l'],
+    paddingVertical: theme.spacing['spacing-m'],
     ...theme.typography.body,
     color: theme.colors.textPrimary,
     minHeight: 45,
@@ -57,6 +51,6 @@ const styles = StyleSheet.create({
   error: {
     ...theme.typography.footnote,
     color: theme.colors.accentError,
-    marginTop: theme.spacing["spacing-xs"],
+    marginTop: theme.spacing['spacing-xs'],
   },
 });

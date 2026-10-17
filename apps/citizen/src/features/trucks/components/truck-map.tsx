@@ -1,9 +1,9 @@
-import { AppleMaps, GoogleMaps } from "expo-maps";
-import { memo, useMemo } from "react";
-import { Platform, StyleSheet, View } from "react-native";
-import { DEFAULT_MAP_CENTER } from "@/constants";
-import { theme } from "@/theme";
-import type { LocationCoords, Truck } from "@/types";
+import { AppleMaps, GoogleMaps } from 'expo-maps';
+import { memo, useMemo } from 'react';
+import { Platform, StyleSheet, View } from 'react-native';
+import { DEFAULT_MAP_CENTER } from '@/constants';
+import { theme } from '@/theme';
+import type { LocationCoords, Truck } from '@/types';
 
 interface TruckMapProps {
   trucks: Truck[];
@@ -11,7 +11,7 @@ interface TruckMapProps {
 }
 
 function TruckMapComponent({ trucks, userLocation }: TruckMapProps) {
-  const MapComponent = Platform.OS === "ios" ? AppleMaps.View : GoogleMaps.View;
+  const MapComponent = Platform.OS === 'ios' ? AppleMaps.View : GoogleMaps.View;
 
   const userLat = userLocation?.latitude;
   const userLng = userLocation?.longitude;
@@ -42,7 +42,7 @@ function TruckMapComponent({ trucks, userLocation }: TruckMapProps) {
       <MapComponent
         style={styles.map}
         cameraPosition={camera}
-        {...(Platform.OS === "ios" ? { annotations: markers } : { markers })}
+        {...(Platform.OS === 'ios' ? { annotations: markers } : { markers })}
         properties={{ isMyLocationEnabled: Boolean(userLocation) }}
         uiSettings={{ myLocationButtonEnabled: Boolean(userLocation) }}
       />
@@ -57,12 +57,8 @@ export const TruckMap = memo(TruckMapComponent, (prevProps, nextProps) => {
     !(prevProps.userLocation || nextProps.userLocation) ||
     (prevProps.userLocation &&
       nextProps.userLocation &&
-      Math.abs(
-        prevProps.userLocation.latitude - nextProps.userLocation.latitude,
-      ) < LOCATION_EPSILON &&
-      Math.abs(
-        prevProps.userLocation.longitude - nextProps.userLocation.longitude,
-      ) < LOCATION_EPSILON);
+      Math.abs(prevProps.userLocation.latitude - nextProps.userLocation.latitude) < LOCATION_EPSILON &&
+      Math.abs(prevProps.userLocation.longitude - nextProps.userLocation.longitude) < LOCATION_EPSILON);
 
   if (!isUserLocationSame) {
     return false;
@@ -72,9 +68,7 @@ export const TruckMap = memo(TruckMapComponent, (prevProps, nextProps) => {
     return false;
   }
 
-  const prevTrucksMap = new Map(
-    prevProps.trucks.map((truck) => [truck.id, truck]),
-  );
+  const prevTrucksMap = new Map(prevProps.trucks.map((truck) => [truck.id, truck]));
 
   const areTrucksSame = nextProps.trucks.every((nextTruck) => {
     const prevTruck = prevTrucksMap.get(nextTruck.id);
@@ -87,7 +81,7 @@ export const TruckMap = memo(TruckMapComponent, (prevProps, nextProps) => {
   return areTrucksSame;
 });
 
-TruckMap.displayName = "TruckMap";
+TruckMap.displayName = 'TruckMap';
 
 const styles = StyleSheet.create({
   container: {

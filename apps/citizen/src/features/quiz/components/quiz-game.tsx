@@ -1,10 +1,10 @@
-import { useState } from "react";
-import { Image, Pressable, StyleSheet, Text, View } from "react-native";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { WASTE_TYPES } from "@/constants";
-import { theme } from "@/theme";
-import type { QuizQuestion, WasteType } from "@/types";
+import { useState } from 'react';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { WASTE_TYPES } from '@/constants';
+import { theme } from '@/theme';
+import type { QuizQuestion, WasteType } from '@/types';
 
 interface QuizGameProps {
   questions: QuizQuestion[];
@@ -56,11 +56,7 @@ export function QuizGame({ questions, onComplete }: QuizGameProps) {
           const isWrong = isAnswered && isSelected && !isCorrect;
 
           return (
-            <Pressable
-              key={option}
-              onPress={() => !isAnswered && handleAnswer(option)}
-              disabled={isAnswered}
-            >
+            <Pressable key={option} onPress={() => !isAnswered && handleAnswer(option)} disabled={isAnswered}>
               <Card
                 style={[
                   styles.option,
@@ -70,9 +66,7 @@ export function QuizGame({ questions, onComplete }: QuizGameProps) {
                 ]}
                 variant="outline"
               >
-                <Text style={styles.optionText}>
-                  {WASTE_TYPES[option].label}
-                </Text>
+                <Text style={styles.optionText}>{WASTE_TYPES[option].label}</Text>
               </Card>
             </Pressable>
           );
@@ -81,11 +75,7 @@ export function QuizGame({ questions, onComplete }: QuizGameProps) {
 
       {isAnswered && (
         <View style={styles.footer}>
-          <Button
-            title={isLastQuestion ? "Ver resultados" : "Siguiente"}
-            onPress={handleNext}
-            fullWidth={true}
-          />
+          <Button title={isLastQuestion ? 'Ver resultados' : 'Siguiente'} onPress={handleNext} fullWidth={true} />
         </View>
       )}
     </View>
@@ -95,23 +85,23 @@ export function QuizGame({ questions, onComplete }: QuizGameProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    gap: theme.spacing["spacing-l"],
+    gap: theme.spacing['spacing-l'],
   },
   progress: {
     ...theme.typography.caption,
     color: theme.colors.textSecondary,
-    textAlign: "center",
-    textTransform: "uppercase",
+    textAlign: 'center',
+    textTransform: 'uppercase',
   },
   image: {
-    width: "100%",
+    width: '100%',
     height: 200,
-    borderRadius: theme.radius["radius-xl"],
+    borderRadius: theme.radius['radius-xl'],
     backgroundColor: theme.colors.backgroundSecondary,
   },
   questionContainer: {
-    alignItems: "center",
-    gap: theme.spacing["spacing-xs"],
+    alignItems: 'center',
+    gap: theme.spacing['spacing-xs'],
   },
   questionText: {
     ...theme.typography.callout,
@@ -122,13 +112,13 @@ const styles = StyleSheet.create({
     color: theme.colors.textPrimary,
   },
   options: {
-    gap: theme.spacing["spacing-m"],
-    marginTop: theme.spacing["spacing-m"],
+    gap: theme.spacing['spacing-m'],
+    marginTop: theme.spacing['spacing-m'],
   },
   option: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   optionText: {
     ...theme.typography.body,
@@ -146,7 +136,7 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   footer: {
-    marginTop: "auto",
-    paddingBottom: theme.spacing["spacing-l"],
+    marginTop: 'auto',
+    paddingBottom: theme.spacing['spacing-l'],
   },
 });

@@ -1,26 +1,26 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
-import { StyleSheet, Text, View } from "react-native";
-import { z } from "zod";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useToast } from "@/context/toast-context";
-import { useAuth } from "@/features/auth/hooks/use-auth";
-import { ApiError } from "@/lib/api";
-import { theme } from "@/theme";
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useEffect, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { StyleSheet, Text, View } from 'react-native';
+import { z } from 'zod';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { useToast } from '@/context/toast-context';
+import { useAuth } from '@/features/auth/hooks/use-auth';
+import { ApiError } from '@/lib/api';
+import { theme } from '@/theme';
 
 const baseSchema = z.object({
-  email: z.email("Correo electrónico inválido"),
+  email: z.email('Correo electrónico inválido'),
 });
 
 const signupSchema = baseSchema.extend({
-  name: z.string().min(2, "El nombre es obligatorio"),
-  password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
+  name: z.string().min(2, 'El nombre es obligatorio'),
+  password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),
 });
 
 const loginSchema = baseSchema.extend({
-  password: z.string().min(1, "La contraseña es obligatoria"),
+  password: z.string().min(1, 'La contraseña es obligatoria'),
 });
 
 interface FormData {
@@ -30,8 +30,8 @@ interface FormData {
 }
 
 const DEFAULT_VALUES = {
-  login: { name: "", email: "", password: "" },
-  signup: { name: "", email: "", password: "" },
+  login: { name: '', email: '', password: '' },
+  signup: { name: '', email: '', password: '' },
 } as const;
 
 interface AuthFormProps {
@@ -41,7 +41,7 @@ interface AuthFormProps {
 export function AuthForm({ onSuccess }: AuthFormProps) {
   const { login, signUp } = useAuth();
   const { show } = useToast();
-  const [mode, setMode] = useState<"login" | "signup">("login");
+  const [mode, setMode] = useState<'login' | 'signup'>('login');
 
   const {
     control,
@@ -49,8 +49,8 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
     formState: { errors, isSubmitting },
     reset,
   } = useForm<FormData>({
-    resolver: zodResolver(mode === "login" ? loginSchema : signupSchema),
-    defaultValues: { name: "", email: "", password: "" },
+    resolver: zodResolver(mode === 'login' ? loginSchema : signupSchema),
+    defaultValues: { name: '', email: '', password: '' },
   });
 
   useEffect(() => {
@@ -59,7 +59,7 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
 
   const handleAuth = async (data: FormData) => {
     try {
-      if (mode === "login") {
+      if (mode === 'login') {
         await login({ email: data.email, password: data.password });
       } else {
         await signUp({
@@ -72,10 +72,10 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
       onSuccess?.();
     } catch (error: unknown) {
       if (error instanceof ApiError) {
-        show(error.message, { type: "error" });
+        show(error.message, { type: 'error' });
       } else {
-        show("Ocurrió un error inesperado. Por favor, intenta de nuevo.", {
-          type: "error",
+        show('Ocurrió un error inesperado. Por favor, intenta de nuevo.', {
+          type: 'error',
         });
       }
     }
@@ -83,27 +83,19 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>
-        {mode === "login" ? "Iniciar sesión" : "Crear cuenta"}
-      </Text>
+      <Text style={styles.title}>{mode === 'login' ? 'Iniciar sesión' : 'Crear cuenta'}</Text>
       <Text style={styles.description}>
-        {mode === "login"
-          ? "Inicia sesión para reportar problemas y ver tu progreso."
-          : "Crea una cuenta para acceder a todas las funciones."}
+        {mode === 'login'
+          ? 'Inicia sesión para reportar problemas y ver tu progreso.'
+          : 'Crea una cuenta para acceder a todas las funciones.'}
       </Text>
 
-      {mode === "signup" && (
+      {mode === 'signup' && (
         <Controller
           control={control}
           name="name"
           render={({ field: { onChange, onBlur, value } }) => (
-            <Input
-              label="Nombre"
-              onBlur={onBlur}
-              onChangeText={onChange}
-              value={value}
-              error={errors.name?.message}
-            />
+            <Input label="Nombre" onBlur={onBlur} onChangeText={onChange} value={value} error={errors.name?.message} />
           )}
         />
       )}
@@ -138,19 +130,15 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
       />
 
       <Button
-        title={mode === "login" ? "Iniciar sesión" : "Crear cuenta"}
+        title={mode === 'login' ? 'Iniciar sesión' : 'Crear cuenta'}
         onPress={() => handleSubmit(handleAuth)()}
         loading={isSubmitting}
         fullWidth={true}
       />
       <Button
-        title={
-          mode === "login"
-            ? "¿No tienes cuenta? Regístrate"
-            : "¿Ya tienes cuenta? Inicia sesión"
-        }
+        title={mode === 'login' ? '¿No tienes cuenta? Regístrate' : '¿Ya tienes cuenta? Inicia sesión'}
         variant="ghost"
-        onPress={() => setMode((m) => (m === "login" ? "signup" : "login"))}
+        onPress={() => setMode((m) => (m === 'login' ? 'signup' : 'login'))}
         disabled={isSubmitting}
       />
     </View>
@@ -159,7 +147,7 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
 
 const styles = StyleSheet.create({
   container: {
-    gap: theme.spacing["spacing-xl"],
+    gap: theme.spacing['spacing-xl'],
   },
   title: {
     ...theme.typography.title1,

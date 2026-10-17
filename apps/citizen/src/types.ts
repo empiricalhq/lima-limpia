@@ -9,14 +9,14 @@ export interface Truck {
 
 export type TruckStatus =
   | {
-      status: "ON_THE_WAY";
+      status: 'ON_THE_WAY';
       etaMinutes: number;
       truckId: string;
       truckName: string;
     }
-  | { status: "NEARBY"; truckId: string; truckName: string }
-  | { status: "NOT_SCHEDULED"; message: string }
-  | { status: "LOCATION_NOT_SET"; message: string };
+  | { status: 'NEARBY'; truckId: string; truckName: string }
+  | { status: 'NOT_SCHEDULED'; message: string }
+  | { status: 'LOCATION_NOT_SET'; message: string };
 
 export interface QuizQuestion {
   id: string;
@@ -35,12 +35,12 @@ export interface QuizProgress {
 
 export interface Report {
   id: string;
-  type: "missed_collection" | "illegal_dumping" | "other";
+  type: 'missed_collection' | 'illegal_dumping' | 'other';
   description: string;
   latitude: number;
   longitude: number;
   photoUrl?: string;
-  status: "open" | "in_progress" | "resolved";
+  status: 'open' | 'in_progress' | 'resolved';
   createdAt: string;
 }
 
@@ -50,7 +50,7 @@ export interface User {
   email: string;
 }
 
-export type WasteType = "general" | "recycling" | "organic" | "hazardous";
+export type WasteType = 'general' | 'recycling' | 'organic' | 'hazardous';
 
 export interface ApiError {
   message: string;
@@ -58,7 +58,7 @@ export interface ApiError {
 }
 
 export interface CreateReportInput {
-  type: Report["type"];
+  type: Report['type'];
   description: string;
   latitude: number;
   longitude: number;

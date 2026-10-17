@@ -1,18 +1,11 @@
-import { Link, Tabs } from "expo-router";
-import type { BottomTabBarProps } from "expo-router/tabs";
-import {
-  BookOpen,
-  Home,
-  type LucideProps,
-  MapPin,
-  Plus,
-  User,
-} from "lucide-react-native";
-import type { ComponentType } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
-import FastSquircleView from "react-native-fast-squircle";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { theme } from "@/theme";
+import { Link, Tabs } from 'expo-router';
+import type { BottomTabBarProps } from 'expo-router/tabs';
+import { BookOpen, Home, type LucideProps, MapPin, Plus, User } from 'lucide-react-native';
+import type { ComponentType } from 'react';
+import { Pressable, StyleSheet, View } from 'react-native';
+import FastSquircleView from 'react-native-fast-squircle';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { theme } from '@/theme';
 
 const TAB_ICONS: Record<string, ComponentType<LucideProps>> = {
   index: Home,
@@ -30,7 +23,7 @@ function CustomTabBar({ state, emitter, navigateToTab }: BottomTabBarProps) {
         style={[
           styles.tabBar,
           {
-            height: theme.sizing["sizing-tabbar"] + insets.bottom,
+            height: theme.sizing['sizing-tabbar'] + insets.bottom,
             paddingBottom: insets.bottom,
           },
         ]}
@@ -40,7 +33,7 @@ function CustomTabBar({ state, emitter, navigateToTab }: BottomTabBarProps) {
 
           const onPress = () => {
             const event = emitter.emit({
-              type: "tabPress",
+              type: 'tabPress',
               target: route.key,
               canPreventDefault: true,
             });
@@ -50,14 +43,10 @@ function CustomTabBar({ state, emitter, navigateToTab }: BottomTabBarProps) {
             }
           };
 
-          const iconColor = isFocused
-            ? theme.colors.iconDark
-            : theme.colors.iconGrey;
+          const iconColor = isFocused ? theme.colors.iconDark : theme.colors.iconGrey;
 
           const IconComponent = TAB_ICONS[route.name];
-          const icon = IconComponent ? (
-            <IconComponent color={iconColor} size={28} />
-          ) : null;
+          const icon = IconComponent ? <IconComponent color={iconColor} size={28} /> : null;
 
           if (index === 2) {
             return <View key="placeholder" style={styles.centerPlaceholder} />;
@@ -71,10 +60,7 @@ function CustomTabBar({ state, emitter, navigateToTab }: BottomTabBarProps) {
       </View>
 
       <View
-        style={[
-          styles.centerButtonContainer,
-          { bottom: insets.bottom + 18, left: "50%", marginLeft: -32.5 },
-        ]}
+        style={[styles.centerButtonContainer, { bottom: insets.bottom + 18, left: '50%', marginLeft: -32.5 }]}
         pointerEvents="box-none"
       >
         <Link href="/report" asChild={true}>
@@ -91,10 +77,7 @@ function CustomTabBar({ state, emitter, navigateToTab }: BottomTabBarProps) {
 
 export default function TabLayout() {
   return (
-    <Tabs
-      screenOptions={{ headerShown: false }}
-      tabBar={(props) => <CustomTabBar {...props} />}
-    >
+    <Tabs screenOptions={{ headerShown: false }} tabBar={(props) => <CustomTabBar {...props} />}>
       <Tabs.Screen name="index" />
       <Tabs.Screen name="map" />
       <Tabs.Screen name="placeholder" />
@@ -106,34 +89,34 @@ export default function TabLayout() {
 
 const styles = StyleSheet.create({
   tabBarContainer: {
-    position: "absolute",
+    position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    alignItems: "center",
+    alignItems: 'center',
   },
   tabBar: {
-    flexDirection: "row",
+    flexDirection: 'row',
     backgroundColor: theme.colors.backgroundPrimary,
-    paddingHorizontal: theme.spacing["spacing-l"],
-    width: "100%",
+    paddingHorizontal: theme.spacing['spacing-l'],
+    width: '100%',
   },
   tabItem: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   centerButtonContainer: {
-    position: "absolute",
+    position: 'absolute',
   },
   centerButton: {
     width: 65,
-    height: theme.sizing["sizing-button-md"],
-    borderRadius: theme.radius["radius-l"],
+    height: theme.sizing['sizing-button-md'],
+    borderRadius: theme.radius['radius-l'],
     backgroundColor: theme.colors.backgroundDark,
-    justifyContent: "center",
-    alignItems: "center",
-    ...theme.shadow["shadow-strong"],
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...theme.shadow['shadow-strong'],
   },
   centerPlaceholder: {
     width: 65,

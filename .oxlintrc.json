@@ -7,7 +7,13 @@
   "rules": {
     "eslint/no-unused-vars": "off"
   },
-  "ignorePatterns": ["**/.expo/**", "**/.next/**", "**/android/**", "**/dist/**", "**/ios/**"],
+  "ignorePatterns": [
+    "**/.expo/**",
+    "**/.next/**",
+    "**/android/**",
+    "**/dist/**",
+    "**/ios/**"
+  ],
   "overrides": [
     {
       "files": ["apps/citizen/**"],

@@ -7,5 +7,5 @@ export interface RenderPasswordResetParams {
 }
 
 export async function renderPasswordReset(params: RenderPasswordResetParams): Promise<string> {
-  return await render(PasswordResetEmail(params));
+  return await render(PasswordResetEmail({ ...params, currentYear: new Date().getFullYear() }));
 }

@@ -1,12 +1,12 @@
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
-import { theme } from "@/theme";
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { theme } from '@/theme';
 
 interface LoadingProps {
   message?: string;
-  size?: "small" | "large";
+  size?: 'small' | 'large';
 }
 
-export function Loading({ message, size = "large" }: LoadingProps) {
+export function Loading({ message, size = 'large' }: LoadingProps) {
   return (
     <View style={styles.container}>
       <ActivityIndicator size={size} color={theme.colors.textPrimary} />
@@ -17,10 +17,10 @@ export function Loading({ message, size = "large" }: LoadingProps) {
 
 const styles = StyleSheet.create({
   container: {
-    alignItems: "center",
-    justifyContent: "center",
-    gap: theme.spacing["spacing-m"],
-    paddingVertical: theme.spacing["spacing-xxl"],
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: theme.spacing['spacing-m'],
+    paddingVertical: theme.spacing['spacing-xxl'],
   },
   message: {
     ...theme.typography.callout,

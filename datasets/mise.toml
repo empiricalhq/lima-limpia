@@ -44,3 +44,10 @@ run = "uv run marimo edit --host 0.0.0.0"
 description = "Export Marimo notebooks"
 alias = "e"
 run = "uv run marimo export html-wasm src/03-population-map.py -o src/output --mode run"
+
+[tasks.export-page]
+description = "Export and prerender the Marimo page"
+run = [
+  "uv run marimo export html src/03-population-map.py -o src/output/temp_index.html",
+  "uv run python scripts/prerender_marimo.py src/output/temp_index.html src/output/index.html",
+]

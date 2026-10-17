@@ -5,8 +5,8 @@ on:
     branches:
       - master
     paths:
-      - 'datasets/src/03-population-map.py'
-      - 'datasets/scripts/prerender_marimo.py'
+      - "datasets/src/03-population-map.py"
+      - "datasets/scripts/prerender_marimo.py"
   workflow_dispatch:
 
 defaults:
@@ -21,20 +21,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v7
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v10.3.0
-        with:
-          version: '0.13.0'
+      - name: Set up mise
+        uses: jdx/mise-action@v5
 
       - name: Install dependencies
-        run: uv --project datasets sync
+        run: mise run install
 
-      - name: Export HTML using Marimo
-        run: uv run --project datasets marimo export html src/03-population-map.py -o src/output/temp_index.html
-
-      - name: Prerender Marimo HTML
-        run:
-          uv run --project datasets python scripts/prerender_marimo.py src/output/temp_index.html src/output/index.html
+      - name: Export and prerender Marimo HTML
+        run: mise run export-page
 
       - name: Upload static files as artifact
         id: deployment

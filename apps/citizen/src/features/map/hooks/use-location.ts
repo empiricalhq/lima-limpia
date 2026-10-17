@@ -3,10 +3,10 @@ import {
   getForegroundPermissionsAsync,
   LocationAccuracy,
   requestForegroundPermissionsAsync,
-} from "expo-location";
-import { useCallback, useEffect, useState } from "react";
-import { Alert, Linking } from "react-native";
-import type { LocationCoords } from "@/types";
+} from 'expo-location';
+import { useCallback, useEffect, useState } from 'react';
+import { Alert, Linking } from 'react-native';
+import type { LocationCoords } from '@/types';
 
 interface UseLocationOptions {
   fetchOnMount?: boolean;
@@ -26,19 +26,19 @@ export function useLocation(options: UseLocationOptions = {}) {
     try {
       let permission = await getForegroundPermissionsAsync();
 
-      if (permission.status !== "granted") {
+      if (permission.status !== 'granted') {
         if (permission.canAskAgain) {
           Alert.alert(
-            "Permiso de ubicación",
-            "La aplicación necesita tu ubicación para reportar problemas y mostrar camiones cercanos.",
+            'Permiso de ubicación',
+            'La aplicación necesita tu ubicación para reportar problemas y mostrar camiones cercanos.',
             [
-              { text: "Cancelar", style: "cancel" },
+              { text: 'Cancelar', style: 'cancel' },
               {
-                text: "Permitir",
+                text: 'Permitir',
                 onPress: async () => {
                   permission = await requestForegroundPermissionsAsync();
-                  if (permission.status !== "granted") {
-                    throw new Error("Permiso de ubicación denegado.");
+                  if (permission.status !== 'granted') {
+                    throw new Error('Permiso de ubicación denegado.');
                   }
                 },
               },
@@ -46,14 +46,14 @@ export function useLocation(options: UseLocationOptions = {}) {
           );
         } else {
           Alert.alert(
-            "Habilitar ubicación",
-            "El permiso de ubicación fue denegado. Por favor, habilítalo en los ajustes de la aplicación para continuar.",
+            'Habilitar ubicación',
+            'El permiso de ubicación fue denegado. Por favor, habilítalo en los ajustes de la aplicación para continuar.',
             [
-              { text: "Cancelar", style: "cancel" },
-              { text: "Abrir Ajustes", onPress: () => Linking.openSettings() },
+              { text: 'Cancelar', style: 'cancel' },
+              { text: 'Abrir Ajustes', onPress: () => Linking.openSettings() },
             ],
           );
-          throw new Error("Permiso de ubicación denegado permanentemente.");
+          throw new Error('Permiso de ubicación denegado permanentemente.');
         }
       }
 
@@ -69,8 +69,7 @@ export function useLocation(options: UseLocationOptions = {}) {
       setCoords(newCoords);
       return newCoords;
     } catch (err: unknown) {
-      const message =
-        err instanceof Error ? err.message : "No se pudo obtener la ubicación";
+      const message = err instanceof Error ? err.message : 'No se pudo obtener la ubicación';
       setError(message);
       setCoords(null);
       throw err;
@@ -82,7 +81,7 @@ export function useLocation(options: UseLocationOptions = {}) {
   useEffect(() => {
     if (fetchOnMount) {
       requestLocation().catch((err) => {
-        console.error("Failed to fetch location on mount:", err);
+        console.error('Failed to fetch location on mount:', err);
       });
     }
   }, [fetchOnMount, requestLocation]);

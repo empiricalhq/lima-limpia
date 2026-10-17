@@ -1,12 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { quizQuestions } from "@/features/quiz/data/quiz-questions";
-import { storage } from "@/lib/storage";
-import type { QuizProgress } from "@/types";
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { quizQuestions } from '@/features/quiz/data/quiz-questions';
+import { storage } from '@/lib/storage';
+import type { QuizProgress } from '@/types';
 
-function calculateDaysDifference(
-  lastPlayed: string | null,
-  today: string,
-): number {
+function calculateDaysDifference(lastPlayed: string | null, today: string): number {
   if (!lastPlayed) {
     return -1;
   }
@@ -25,7 +22,7 @@ export function useQuizProgress() {
   const queryClient = useQueryClient();
 
   const query = useQuery({
-    queryKey: ["quizProgress"],
+    queryKey: ['quizProgress'],
     queryFn: () => storage.getQuizProgress(),
     staleTime: Number.POSITIVE_INFINITY,
   });
@@ -33,10 +30,9 @@ export function useQuizProgress() {
   const mutation = useMutation({
     mutationFn: async (finalScore: number): Promise<QuizProgress> => {
       const currentProgress =
-        queryClient.getQueryData<QuizProgress>(["quizProgress"]) ??
-        (await storage.getQuizProgress());
+        queryClient.getQueryData<QuizProgress>(['quizProgress']) ?? (await storage.getQuizProgress());
 
-      const [today] = new Date().toISOString().split("T");
+      const [today] = new Date().toISOString().split('T');
 
       if (currentProgress.lastPlayed === today) {
         const newProgress: QuizProgress = {
@@ -48,10 +44,7 @@ export function useQuizProgress() {
         return newProgress;
       }
 
-      const daysSinceLastPlayed = calculateDaysDifference(
-        currentProgress.lastPlayed,
-        today,
-      );
+      const daysSinceLastPlayed = calculateDaysDifference(currentProgress.lastPlayed, today);
 
       let newStreak: number;
       if (daysSinceLastPlayed === 1) {
@@ -71,10 +64,10 @@ export function useQuizProgress() {
       return newProgress;
     },
     onSuccess: (newProgress) => {
-      queryClient.setQueryData(["quizProgress"], newProgress);
+      queryClient.setQueryData(['quizProgress'], newProgress);
     },
     onError: (error) => {
-      console.error("Failed to save quiz progress:", error);
+      console.error('Failed to save quiz progress:', error);
     },
   });
 

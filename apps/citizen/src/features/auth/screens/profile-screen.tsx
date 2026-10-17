@@ -1,28 +1,23 @@
-import { StyleSheet, Text, View } from "react-native";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Loading } from "@/components/ui/loading";
-import { Screen } from "@/components/ui/screen";
-import { useToast } from "@/context/toast-context";
-import { useLocation } from "@/features/map/hooks/use-location";
-import { useQuizProgress } from "@/features/quiz/hooks/use-quiz-progress";
-import { ApiError } from "@/lib/api";
-import { theme } from "@/theme";
-import { AuthForm } from "../components/auth-form";
-import { useAuth } from "../hooks/use-auth";
-import { useUpdateLocation } from "../hooks/use-update-location";
+import { StyleSheet, Text, View } from 'react-native';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Loading } from '@/components/ui/loading';
+import { Screen } from '@/components/ui/screen';
+import { useToast } from '@/context/toast-context';
+import { useLocation } from '@/features/map/hooks/use-location';
+import { useQuizProgress } from '@/features/quiz/hooks/use-quiz-progress';
+import { ApiError } from '@/lib/api';
+import { theme } from '@/theme';
+import { AuthForm } from '../components/auth-form';
+import { useAuth } from '../hooks/use-auth';
+import { useUpdateLocation } from '../hooks/use-update-location';
 
 export function ProfileScreen() {
   const { user, isAuthenticated, logout } = useAuth();
   const { show } = useToast();
   const { progress, isLoadingProgress } = useQuizProgress();
-  const {
-    isLoading: isLoadingLocation,
-    error: locationError,
-    requestLocation,
-  } = useLocation();
-  const { mutate: updateLocation, isPending: isUpdatingLocation } =
-    useUpdateLocation();
+  const { isLoading: isLoadingLocation, error: locationError, requestLocation } = useLocation();
+  const { mutate: updateLocation, isPending: isUpdatingLocation } = useUpdateLocation();
 
   const handleUpdateLocation = async () => {
     try {
@@ -30,29 +25,26 @@ export function ProfileScreen() {
       if (coords) {
         updateLocation(coords, {
           onSuccess: () => {
-            show("Ubicación actualizada correctamente", { type: "success" });
+            show('Ubicación actualizada correctamente', { type: 'success' });
           },
           onError: (error) => {
-            const message =
-              error instanceof ApiError
-                ? error.message
-                : "No se pudo guardar tu ubicación.";
-            show(message, { type: "error" });
+            const message = error instanceof ApiError ? error.message : 'No se pudo guardar tu ubicación.';
+            show(message, { type: 'error' });
           },
         });
       }
     } catch {
       if (locationError) {
-        show(locationError, { type: "error" });
+        show(locationError, { type: 'error' });
       }
     }
   };
 
   const handleLogout = () => {
-    show("¿Estás seguro que quieres cerrar sesión?", {
-      type: "error",
+    show('¿Estás seguro que quieres cerrar sesión?', {
+      type: 'error',
       action: {
-        label: "Confirmar",
+        label: 'Confirmar',
         onPress: async () => {
           await logout();
         },
@@ -69,9 +61,7 @@ export function ProfileScreen() {
   }
 
   const accuracy =
-    progress && progress.totalAnswered > 0
-      ? Math.round((progress.correctAnswers / progress.totalAnswered) * 100)
-      : 0;
+    progress && progress.totalAnswered > 0 ? Math.round((progress.correctAnswers / progress.totalAnswered) * 100) : 0;
 
   return (
     <Screen>
@@ -95,9 +85,7 @@ export function ProfileScreen() {
                 <Text style={styles.statLabel}>Precisión</Text>
               </View>
               <View style={styles.stat}>
-                <Text style={styles.statValue}>
-                  {progress?.totalAnswered || 0}
-                </Text>
+                <Text style={styles.statValue}>{progress?.totalAnswered || 0}</Text>
                 <Text style={styles.statLabel}>Respuestas</Text>
               </View>
             </View>
@@ -111,11 +99,7 @@ export function ProfileScreen() {
           loading={isLoadingLocation || isUpdatingLocation}
         />
 
-        <Button
-          title="Cerrar sesión"
-          variant="destructive"
-          onPress={handleLogout}
-        />
+        <Button title="Cerrar sesión" variant="destructive" onPress={handleLogout} />
       </View>
     </Screen>
   );
@@ -123,7 +107,7 @@ export function ProfileScreen() {
 
 const styles = StyleSheet.create({
   contentWrapper: {
-    gap: theme.spacing["spacing-xl"],
+    gap: theme.spacing['spacing-xl'],
   },
   title: {
     ...theme.typography.title1,
@@ -136,19 +120,19 @@ const styles = StyleSheet.create({
   email: {
     ...theme.typography.callout,
     color: theme.colors.textSecondary,
-    marginTop: -theme.spacing["spacing-m"],
+    marginTop: -theme.spacing['spacing-m'],
   },
   cardTitle: {
     ...theme.typography.title3,
     color: theme.colors.textPrimary,
-    marginBottom: theme.spacing["spacing-l"],
+    marginBottom: theme.spacing['spacing-l'],
   },
   stats: {
-    flexDirection: "row",
-    justifyContent: "space-around",
+    flexDirection: 'row',
+    justifyContent: 'space-around',
   },
   stat: {
-    alignItems: "center",
+    alignItems: 'center',
   },
   statValue: {
     ...theme.typography.title1,
@@ -156,8 +140,8 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     ...theme.typography.caption,
-    textTransform: "uppercase",
+    textTransform: 'uppercase',
     color: theme.colors.textSecondary,
-    marginTop: theme.spacing["spacing-xs"],
+    marginTop: theme.spacing['spacing-xs'],
   },
 });

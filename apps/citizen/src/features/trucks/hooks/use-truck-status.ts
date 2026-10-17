@@ -1,14 +1,14 @@
-import { useQuery } from "@tanstack/react-query";
-import { POLLING } from "@/constants";
-import { useAppState } from "@/hooks/use-app-state";
-import { api } from "@/lib/api";
+import { useQuery } from '@tanstack/react-query';
+import { POLLING } from '@/constants';
+import { useAppState } from '@/hooks/use-app-state';
+import { api } from '@/lib/api';
 
 export function useTruckStatus(options: { enabled?: boolean } = {}) {
   const { enabled = true } = options;
   const isAppActive = useAppState();
 
   return useQuery({
-    queryKey: ["truck-status"],
+    queryKey: ['truck-status'],
     queryFn: () => api.getTruckStatus(),
     refetchInterval: isAppActive && enabled ? POLLING.STATUS : false,
     staleTime: POLLING.STATUS,

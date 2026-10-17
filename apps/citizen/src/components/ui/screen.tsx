@@ -1,13 +1,7 @@
-import type { ReactNode } from "react";
-import {
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  View,
-  type ViewProps,
-} from "react-native";
-import { type Edges, SafeAreaView } from "react-native-safe-area-context";
-import { theme } from "@/theme";
+import type { ReactNode } from 'react';
+import { RefreshControl, ScrollView, StyleSheet, View, type ViewProps } from 'react-native';
+import { type Edges, SafeAreaView } from 'react-native-safe-area-context';
+import { theme } from '@/theme';
 
 interface ScreenProps extends ViewProps {
   children: ReactNode;
@@ -20,7 +14,7 @@ interface ScreenProps extends ViewProps {
 export function Screen({
   children,
   scrollable = true,
-  edges = ["top"],
+  edges = ['top'],
   isRefreshing,
   onRefresh,
   style,
@@ -32,20 +26,13 @@ export function Screen({
       contentContainerStyle={styles.content}
       showsVerticalScrollIndicator={false}
       refreshControl={
-        onRefresh ? (
-          <RefreshControl
-            refreshing={Boolean(isRefreshing)}
-            onRefresh={onRefresh}
-          />
-        ) : undefined
+        onRefresh ? <RefreshControl refreshing={Boolean(isRefreshing)} onRefresh={onRefresh} /> : undefined
       }
     >
       {children}
     </ScrollView>
   ) : (
-    <View style={[styles.content, styles.nonScrollableContent]}>
-      {children}
-    </View>
+    <View style={[styles.content, styles.nonScrollableContent]}>{children}</View>
   );
 
   return (
@@ -65,8 +52,8 @@ const styles = StyleSheet.create({
   },
   content: {
     flexGrow: 1,
-    paddingHorizontal: theme.spacing["spacing-xl"],
-    paddingVertical: theme.spacing["spacing-l"],
+    paddingHorizontal: theme.spacing['spacing-xl'],
+    paddingVertical: theme.spacing['spacing-l'],
   },
   nonScrollableContent: {
     flex: 1,

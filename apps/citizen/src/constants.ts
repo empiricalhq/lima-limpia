@@ -1,20 +1,18 @@
-import type { WasteType } from "./types";
+import type { WasteType } from './types';
 
-export const API_URL =
-  process.env.EXPO_PUBLIC_API_URL || "https://lima-api.vercel.app";
+export const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://lima-api.vercel.app';
 
-export const WASTE_TYPES: Record<WasteType, { label: string; color: string }> =
-  {
-    general: { label: "Basura general", color: "#71717A" },
-    recycling: { label: "Reciclables", color: "#3B82F6" },
-    organic: { label: "Orgánicos", color: "#10B981" },
-    hazardous: { label: "Peligrosos", color: "#EF4444" },
-  };
+export const WASTE_TYPES: Record<WasteType, { label: string; color: string }> = {
+  general: { label: 'Basura general', color: '#71717A' },
+  recycling: { label: 'Reciclables', color: '#3B82F6' },
+  organic: { label: 'Orgánicos', color: '#10B981' },
+  hazardous: { label: 'Peligrosos', color: '#EF4444' },
+};
 
 export const REPORT_TYPES = {
-  missed_collection: "Recolección perdida",
-  illegal_dumping: "Vertido ilegal",
-  other: "Otro",
+  missed_collection: 'Recolección perdida',
+  illegal_dumping: 'Vertido ilegal',
+  other: 'Otro',
 } as const;
 
 export const POLLING = {

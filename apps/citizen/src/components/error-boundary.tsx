@@ -1,7 +1,7 @@
-import { Component, type ErrorInfo, type ReactNode } from "react";
-import { StyleSheet, View } from "react-native";
-import { ErrorState } from "@/components/ui/error-state";
-import { theme } from "@/theme";
+import { Component, type ErrorInfo, type ReactNode } from 'react';
+import { StyleSheet, View } from 'react-native';
+import { ErrorState } from '@/components/ui/error-state';
+import { theme } from '@/theme';
 
 interface Props {
   children: ReactNode;
@@ -21,7 +21,7 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error("Uncaught error:", error, errorInfo);
+    console.error('Uncaught error:', error, errorInfo);
   }
 
   render() {
@@ -40,9 +40,9 @@ export class ErrorBoundary extends Component<Props, State> {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: theme.spacing["spacing-l"],
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: theme.spacing['spacing-l'],
     backgroundColor: theme.colors.backgroundPrimary,
   },
 });

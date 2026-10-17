@@ -5,68 +5,68 @@ version: 2
 # scope -- an entry for a workspace directory moves package.json alone.
 # Bun has no security updates, so an alert still needs a bump by hand.
 updates:
-  - package-ecosystem: 'bun'
-    directory: '/'
+  - package-ecosystem: "bun"
+    directory: "/"
     schedule:
-      interval: 'weekly'
-      day: 'monday'
-      time: '09:00'
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
     open-pull-requests-limit: 10
     assignees:
-      - 'totallynotdavid'
+      - "totallynotdavid"
     commit-message:
-      prefix: 'deps'
-      include: 'scope'
+      prefix: "deps"
+      include: "scope"
     groups:
       nextjs:
         patterns:
-          - 'next*'
-          - '@next/*'
+          - "next*"
+          - "@next/*"
       radix:
         patterns:
-          - '@radix-ui/*'
+          - "@radix-ui/*"
       drizzle:
         patterns:
-          - 'drizzle*'
+          - "drizzle*"
       supabase:
         patterns:
-          - '@supabase/*'
+          - "@supabase/*"
       expo:
         patterns:
-          - 'expo*'
-          - '@expo/*'
+          - "expo*"
+          - "@expo/*"
     # Expo's SDK matrix pins these and `expo install --fix` writes them from the
     # installed SDK's bundledNativeModules.json. `expo` itself stays out, because
     # the SDK bump is the signal that fans the rest out. One entry cannot hold a
     # version for apps/citizen alone, so react waits for the matrix here too.
     ignore:
-      - dependency-name: 'expo-*'
-      - dependency-name: '@react-native-community/netinfo'
-      - dependency-name: 'react'
-      - dependency-name: 'react-dom'
-      - dependency-name: '@types/react'
-      - dependency-name: '@types/react-dom'
-      - dependency-name: 'react-native'
-      - dependency-name: 'react-native-gesture-handler'
-      - dependency-name: 'react-native-reanimated'
-      - dependency-name: 'react-native-safe-area-context'
-      - dependency-name: 'react-native-screens'
-      - dependency-name: 'react-native-svg'
-      - dependency-name: 'react-native-worklets'
+      - dependency-name: "expo-*"
+      - dependency-name: "@react-native-community/netinfo"
+      - dependency-name: "react"
+      - dependency-name: "react-dom"
+      - dependency-name: "@types/react"
+      - dependency-name: "@types/react-dom"
+      - dependency-name: "react-native"
+      - dependency-name: "react-native-gesture-handler"
+      - dependency-name: "react-native-reanimated"
+      - dependency-name: "react-native-safe-area-context"
+      - dependency-name: "react-native-screens"
+      - dependency-name: "react-native-svg"
+      - dependency-name: "react-native-worklets"
       # Babel 8 waits on @expo/metro-config, which still depends on @babel/core ^7.20.0.
-      - dependency-name: '@babel/core'
+      - dependency-name: "@babel/core"
         versions:
-          - '8.x'
+          - "8.x"
 
-  - package-ecosystem: 'github-actions'
-    directory: '/'
+  - package-ecosystem: "github-actions"
+    directory: "/"
     schedule:
-      interval: 'weekly'
-      day: 'monday'
-      time: '09:00'
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
     open-pull-requests-limit: 5
     assignees:
-      - 'totallynotdavid'
+      - "totallynotdavid"
     commit-message:
-      prefix: 'deps(actions)'
-      include: 'scope'
+      prefix: "deps(actions)"
+      include: "scope"

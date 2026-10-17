@@ -1,9 +1,9 @@
 {
   "name": "@lima-garbage/email",
+  "private": true,
+  "type": "module",
   "module": "src/index.ts",
   "types": "src/index.ts",
-  "type": "module",
-  "private": true,
   "scripts": {
     "dev": "email dev -p 3001 --dir templates",
     "format": "biome format --write .",

@@ -5,18 +5,14 @@ import {
   type PressableProps,
   StyleSheet,
   Text,
-} from "react-native";
-import FastSquircleView from "react-native-fast-squircle";
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from "react-native-reanimated";
-import { theme } from "@/theme";
+} from 'react-native';
+import FastSquircleView from 'react-native-fast-squircle';
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import { theme } from '@/theme';
 
-interface ButtonProps extends Omit<PressableProps, "style"> {
+interface ButtonProps extends Omit<PressableProps, 'style'> {
   title: string;
-  variant?: "primary" | "secondary" | "destructive" | "ghost";
+  variant?: 'primary' | 'secondary' | 'destructive' | 'ghost';
   loading?: boolean;
   fullWidth?: boolean;
 }
@@ -25,7 +21,7 @@ const AnimatedSquircle = Animated.createAnimatedComponent(FastSquircleView);
 
 export function Button({
   title,
-  variant = "primary",
+  variant = 'primary',
   loading,
   fullWidth,
   disabled,
@@ -55,12 +51,7 @@ export function Button({
   };
 
   return (
-    <Pressable
-      disabled={isDisabled}
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
-      {...props}
-    >
+    <Pressable disabled={isDisabled} onPressIn={handlePressIn} onPressOut={handlePressOut} {...props}>
       <AnimatedSquircle
         style={[
           styles.base,
@@ -75,9 +66,7 @@ export function Button({
           <ActivityIndicator
             size="small"
             color={
-              variant === "primary" || variant === "destructive"
-                ? theme.colors.textOnDark
-                : theme.colors.textPrimary
+              variant === 'primary' || variant === 'destructive' ? theme.colors.textOnDark : theme.colors.textPrimary
             }
           />
         ) : (
@@ -90,11 +79,11 @@ export function Button({
 
 const styles = StyleSheet.create({
   base: {
-    height: theme.sizing["sizing-button-lg"],
-    borderRadius: theme.radius["radius-s"],
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: theme.spacing["spacing-l"],
+    height: theme.sizing['sizing-button-lg'],
+    borderRadius: theme.radius['radius-s'],
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: theme.spacing['spacing-l'],
   },
   primary: {
     backgroundColor: theme.colors.backgroundDark,
@@ -106,11 +95,11 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.accentError,
   },
   ghost: {
-    backgroundColor: "transparent",
-    height: "auto",
+    backgroundColor: 'transparent',
+    height: 'auto',
   },
   fullWidth: {
-    width: "100%",
+    width: '100%',
   },
   disabled: {
     opacity: 0.5,

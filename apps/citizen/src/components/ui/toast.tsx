@@ -1,25 +1,20 @@
-import { useEffect, useRef } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import FastSquircleView from "react-native-fast-squircle";
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-  withTiming,
-} from "react-native-reanimated";
-import { type Toast as ToastType, useToast } from "@/context/toast-context";
-import { theme } from "@/theme";
+import { useEffect, useRef } from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import FastSquircleView from 'react-native-fast-squircle';
+import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
+import { type Toast as ToastType, useToast } from '@/context/toast-context';
+import { theme } from '@/theme';
 
 interface ToastProps {
   toast: ToastType;
   index: number;
 }
 
-const getBackgroundColor = (type: ToastType["options"]["type"]): string => {
+const getBackgroundColor = (type: ToastType['options']['type']): string => {
   switch (type) {
-    case "success":
+    case 'success':
       return theme.colors.accentIncome;
-    case "error":
+    case 'error':
       return theme.colors.accentError;
     default:
       return theme.colors.backgroundDark;
@@ -66,17 +61,11 @@ export function Toast({ toast }: ToastProps) {
     <Animated.View style={[styles.container, animatedStyle]}>
       <Pressable onPress={handleDismiss}>
         <FastSquircleView
-          style={[
-            styles.toast,
-            { backgroundColor },
-            theme.shadow["shadow-soft"],
-          ]}
+          style={[styles.toast, { backgroundColor }, theme.shadow['shadow-soft']]}
           cornerSmoothing={0.8}
         >
           <View style={styles.content}>
-            <Text style={[styles.text, { color: textColor }]}>
-              {toast.content}
-            </Text>
+            <Text style={[styles.text, { color: textColor }]}>{toast.content}</Text>
           </View>
           {action ? (
             <Pressable
@@ -97,14 +86,14 @@ export function Toast({ toast }: ToastProps) {
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: theme.spacing["spacing-l"],
-    marginBottom: theme.spacing["spacing-m"],
+    paddingHorizontal: theme.spacing['spacing-l'],
+    marginBottom: theme.spacing['spacing-m'],
   },
   toast: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: theme.spacing["spacing-l"],
-    borderRadius: theme.radius["radius-m"],
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: theme.spacing['spacing-l'],
+    borderRadius: theme.radius['radius-m'],
     minHeight: 56,
   },
   content: {
@@ -115,11 +104,11 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   actionButton: {
-    paddingHorizontal: theme.spacing["spacing-m"],
-    paddingVertical: theme.spacing["spacing-s"],
-    borderRadius: theme.radius["radius-xs"],
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
-    marginLeft: theme.spacing["spacing-m"],
+    paddingHorizontal: theme.spacing['spacing-m'],
+    paddingVertical: theme.spacing['spacing-s'],
+    borderRadius: theme.radius['radius-xs'],
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    marginLeft: theme.spacing['spacing-m'],
   },
   actionText: {
     color: theme.colors.textOnDark,

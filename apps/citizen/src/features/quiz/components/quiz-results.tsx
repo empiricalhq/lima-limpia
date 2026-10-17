@@ -1,7 +1,7 @@
-import { StyleSheet, Text, View } from "react-native";
-import { Button } from "@/components/ui/button";
-import { quizQuestions } from "@/features/quiz/data/quiz-questions";
-import { theme } from "@/theme";
+import { StyleSheet, Text, View } from 'react-native';
+import { Button } from '@/components/ui/button';
+import { quizQuestions } from '@/features/quiz/data/quiz-questions';
+import { theme } from '@/theme';
 
 interface QuizResultsProps {
   score: number;
@@ -9,30 +9,26 @@ interface QuizResultsProps {
   streakIncreased: boolean;
 }
 
-export function QuizResults({
-  score,
-  onRestart,
-  streakIncreased,
-}: QuizResultsProps) {
+export function QuizResults({ score, onRestart, streakIncreased }: QuizResultsProps) {
   const percentage = Math.round((score / quizQuestions.length) * 100);
 
   const getMessage = () => {
     if (percentage === 100) {
-      return "¡Perfecto!";
+      return '¡Perfecto!';
     }
     if (percentage >= 80) {
-      return "¡Excelente trabajo!";
+      return '¡Excelente trabajo!';
     }
     if (percentage >= 60) {
-      return "¡Buen trabajo!";
+      return '¡Buen trabajo!';
     }
-    return "Sigue practicando";
+    return 'Sigue practicando';
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Quiz completado</Text>
-      <View style={[styles.scoreCircle, theme.shadow["shadow-strong"]]}>
+      <View style={[styles.scoreCircle, theme.shadow['shadow-strong']]}>
         <Text style={styles.scoreValue}>{score}</Text>
         <Text style={styles.scoreTotal}>/ {quizQuestions.length}</Text>
       </View>
@@ -51,9 +47,9 @@ export function QuizResults({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    gap: theme.spacing["spacing-l"],
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: theme.spacing['spacing-l'],
   },
   title: {
     ...theme.typography.title1,
@@ -66,9 +62,9 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.backgroundPrimary,
     borderWidth: 8,
     borderColor: theme.colors.accentIncome,
-    justifyContent: "center",
-    flexDirection: "row",
-    alignItems: "baseline",
+    justifyContent: 'center',
+    flexDirection: 'row',
+    alignItems: 'baseline',
   },
   scoreValue: {
     ...theme.typography.display,
@@ -78,20 +74,20 @@ const styles = StyleSheet.create({
   scoreTotal: {
     ...theme.typography.title2,
     color: theme.colors.textSecondary,
-    marginLeft: theme.spacing["spacing-xs"],
+    marginLeft: theme.spacing['spacing-xs'],
   },
   percentage: {
     ...theme.typography.title2,
     color: theme.colors.textPrimary,
   },
   streakBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: theme.spacing["spacing-s"],
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing['spacing-s'],
     backgroundColor: theme.colors.backgroundSecondary,
-    paddingHorizontal: theme.spacing["spacing-l"],
-    paddingVertical: theme.spacing["spacing-s"],
-    borderRadius: theme.radius["radius-full"],
+    paddingHorizontal: theme.spacing['spacing-l'],
+    paddingVertical: theme.spacing['spacing-s'],
+    borderRadius: theme.radius['radius-full'],
   },
   streakEmoji: {
     fontSize: 20,

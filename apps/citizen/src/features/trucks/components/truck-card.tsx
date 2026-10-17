@@ -1,17 +1,14 @@
-import { StyleSheet, Text, View } from "react-native";
-import { Card } from "@/components/ui/card";
-import { theme } from "@/theme";
-import type { TruckStatus } from "@/types";
+import { StyleSheet, Text, View } from 'react-native';
+import { Card } from '@/components/ui/card';
+import { theme } from '@/theme';
+import type { TruckStatus } from '@/types';
 
 interface TruckCardProps {
   status: TruckStatus;
 }
 
 export function TruckCard({ status }: TruckCardProps) {
-  if (
-    status.status === "NOT_SCHEDULED" ||
-    status.status === "LOCATION_NOT_SET"
-  ) {
+  if (status.status === 'NOT_SCHEDULED' || status.status === 'LOCATION_NOT_SET') {
     return (
       <Card variant="elevated">
         <Text style={styles.sectionTitle}>Recolección de basura</Text>
@@ -23,8 +20,8 @@ export function TruckCard({ status }: TruckCardProps) {
   let subtitle: string;
   let etaDisplay: React.ReactNode;
 
-  if (status.status === "ON_THE_WAY") {
-    subtitle = "En camino a tu ubicación";
+  if (status.status === 'ON_THE_WAY') {
+    subtitle = 'En camino a tu ubicación';
     etaDisplay = (
       <>
         <Text style={styles.etaValue}>{status.etaMinutes}</Text>
@@ -32,7 +29,7 @@ export function TruckCard({ status }: TruckCardProps) {
       </>
     );
   } else {
-    subtitle = "El camión está llegando";
+    subtitle = 'El camión está llegando';
     etaDisplay = <Text style={styles.etaValueNow}>AHORA</Text>;
   }
 
@@ -54,13 +51,13 @@ const styles = StyleSheet.create({
   sectionTitle: {
     ...theme.typography.caption,
     color: theme.colors.textSecondary,
-    marginBottom: theme.spacing["spacing-s"],
-    textTransform: "uppercase",
+    marginBottom: theme.spacing['spacing-s'],
+    textTransform: 'uppercase',
   },
   row: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: theme.spacing["spacing-m"],
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing['spacing-m'],
   },
   content: {
     flex: 1,
@@ -80,7 +77,7 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   eta: {
-    alignItems: "flex-end",
+    alignItems: 'flex-end',
   },
   etaValue: {
     ...theme.typography.title1,
@@ -92,8 +89,8 @@ const styles = StyleSheet.create({
   },
   etaLabel: {
     ...theme.typography.caption,
-    textTransform: "uppercase",
+    textTransform: 'uppercase',
     color: theme.colors.textSecondary,
-    marginTop: -theme.spacing["spacing-xs"],
+    marginTop: -theme.spacing['spacing-xs'],
   },
 });
