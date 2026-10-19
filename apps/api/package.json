@@ -18,7 +18,7 @@
     "@hono/zod-validator": "^0.9.1",
     "@lima-garbage/database": "workspace:*",
     "@lima-garbage/email": "workspace:*",
-    "better-auth": "~1.7.7",
+    "better-auth": "~1.7.10",
     "hono": "^4.13.13",
     "pg": "^8.23.1",
     "resend": "^6.32.1",
