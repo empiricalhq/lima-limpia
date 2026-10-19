@@ -124,7 +124,7 @@
         "picocolors": "1.1.1",
       },
       "devDependencies": {
-        "@electric-sql/pglite": "0.5.9",
+        "@electric-sql/pglite": "0.5.10",
         "@paralleldrive/cuid2": "^3.3.0",
         "@types/bun": "1.4.3",
         "@types/pg": "^8.23.1",
@@ -364,7 +364,7 @@
 
     "@drizzle-team/brocli": ["@drizzle-team/brocli@0.10.2", "", {}, "sha512-z33Il7l5dKjUgGULTqBsQBQwckHh5AbIuxhdsIxDDiZAzBOrZO6q9ogcWC65kU382AfynTfgNumVcNIjuIua6w=="],
 
-    "@electric-sql/pglite": ["@electric-sql/pglite@0.5.9", "", {}, "sha512-GoQTRMZ/o4J3sMW4mLDtDFGNOm1xy5oH+iHDALWll3uERY6OF4BSnL1t7FZH2Mlw+RPceDBlFJgSaecO73c4EA=="],
+    "@electric-sql/pglite": ["@electric-sql/pglite@0.5.10", "", {}, "sha512-tXc/25U3ulOkiRQuTFdwIv+JhBqtMdAF7Gvo6CfZZWtSB4+hgC4Wr2vwK5ngvvN5PJfAAEGIsfyCVy1JhCOBYw=="],
 
     "@emnapi/runtime": ["@emnapi/runtime@1.11.3", "", { "dependencies": { "tslib": "^2.4.0" } }, "sha512-Xz4Tpyki7XyrpbUK1jR1AhdAdaXyhhY4lZ3neLodmhpuWfy2PAQN5B46sAiU4liOXGLkHypn/qU+jvfWSCYYLA=="],
 
