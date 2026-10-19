@@ -19,7 +19,7 @@
     "@hookform/resolvers": "^5.9.1",
     "@react-native-community/netinfo": "12.0.1",
     "@tanstack/react-query": "^5.104.2",
-    "expo": "^58.0.9",
+    "expo": "^58.0.12",
     "expo-camera": "~58.0.10",
     "expo-constants": "~58.0.11",
     "expo-dev-client": "~58.0.13",
