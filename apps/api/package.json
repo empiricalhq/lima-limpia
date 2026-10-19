@@ -28,6 +28,6 @@
     "@types/bun": "1.4.3",
     "@types/pg": "^8.23.1",
     "typescript": "7.0.2",
-    "wrangler": "^4.150.0"
+    "wrangler": "^4.151.0"
   }
 }
