@@ -1,72 +1,40 @@
 version: 2
-
-# The ecosystem is 'bun', not 'npm': only bun's updater writes bun.lock. It has
-# to run from the root, where the lockfile and every workspace manifest are in
-# scope -- an entry for a workspace directory moves package.json alone.
-# Bun has no security updates, so an alert still needs a bump by hand.
 updates:
-  - package-ecosystem: "bun"
-    directory: "/"
+  - package-ecosystem: bun
+    directories:
+      - /
+      - /packages/database
     schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "09:00"
-    open-pull-requests-limit: 10
-    assignees:
-      - "totallynotdavid"
-    commit-message:
-      prefix: "deps"
-      include: "scope"
+      interval: weekly
+    cooldown:
+      default-days: 7
     groups:
-      nextjs:
-        patterns:
-          - "next*"
-          - "@next/*"
-      radix:
-        patterns:
-          - "@radix-ui/*"
-      drizzle:
-        patterns:
-          - "drizzle*"
-      supabase:
-        patterns:
-          - "@supabase/*"
-      expo:
-        patterns:
-          - "expo*"
-          - "@expo/*"
-    # Expo's SDK matrix pins these and `expo install --fix` writes them from the
-    # installed SDK's bundledNativeModules.json. `expo` itself stays out, because
-    # the SDK bump is the signal that fans the rest out. One entry cannot hold a
-    # version for apps/citizen alone, so react waits for the matrix here too.
-    ignore:
-      - dependency-name: "expo-*"
-      - dependency-name: "@react-native-community/netinfo"
-      - dependency-name: "react"
-      - dependency-name: "react-dom"
-      - dependency-name: "@types/react"
-      - dependency-name: "@types/react-dom"
-      - dependency-name: "react-native"
-      - dependency-name: "react-native-gesture-handler"
-      - dependency-name: "react-native-reanimated"
-      - dependency-name: "react-native-safe-area-context"
-      - dependency-name: "react-native-screens"
-      - dependency-name: "react-native-svg"
-      - dependency-name: "react-native-worklets"
-      # Babel 8 waits on @expo/metro-config, which still depends on @babel/core ^7.20.0.
-      - dependency-name: "@babel/core"
-        versions:
-          - "8.x"
+      minor-and-patch:
+        update-types:
+          - minor
+          - patch
 
-  - package-ecosystem: "github-actions"
-    directory: "/"
+  - package-ecosystem: uv
+    directories:
+      - /datasets
     schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "09:00"
-    open-pull-requests-limit: 5
-    assignees:
-      - "totallynotdavid"
-    commit-message:
-      prefix: "deps(actions)"
-      include: "scope"
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      minor-and-patch:
+        update-types:
+          - minor
+          - patch
+
+  - package-ecosystem: github-actions
+    directories:
+      - /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      all:
+        patterns:
+          - "*"
