@@ -2,8 +2,8 @@
 python.uv_venv_auto = "create|source"
 
 [tools]
-uv = "0.13.0"
-ruff = "0.17.0"
+uv = "0.13.1"
+ruff = "0.17.1"
 
 [tasks.install]
 description = "Install dependencies"
