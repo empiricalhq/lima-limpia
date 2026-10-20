@@ -34,7 +34,7 @@
     "lucide-react-native": "^1.56.0",
     "react": "19.3.0",
     "react-hook-form": "^7.90.0",
-    "react-native": "0.88.0-rc.4",
+    "react-native": "0.88.0-rc.5",
     "react-native-fast-squircle": "^1.1.5",
     "react-native-gesture-handler": "~3.2.1",
     "react-native-reanimated": "4.7.0",
