@@ -6,40 +6,37 @@ Spanish. [AGENTS.md](AGENTS.md) lists the rules a change must follow.
 
 ## Setup
 
-Follow [Setup](docs/setup.md). The checks need [mise](https://mise.jdx.dev).
-They run on a host with no database.
+Follow [Setup](docs/setup.md). [mise](https://mise.jdx.dev) installs the tools
+that [`mise.toml`](mise.toml) pins: Bun, Node, uv, and Ruff. The checks run on a
+host with no database.
 
 ## Checks
 
 Run these from the repository root before opening a pull request:
 
 ```sh
-mise run install
-mise run check
+mise install
+bun install --frozen-lockfile
+bun run check
 ```
 
-`mise run fix` applies safe formatting and lint fixes. `mise run lint`,
-`mise run typecheck`, `mise run test`, and `mise run build` run each part of the
-check separately. Biome checks the code, oxfmt checks Markdown, YAML, and JSON,
-and oxlint checks React, including the React Compiler rules in the citizen app.
+`bun run fix` applies safe formatting and lint fixes. `bun run lint`,
+`bun run typecheck`, `bun run test`, and `bun run build` run each part of the
+check separately. The scripts live in [`package.json`](package.json). Biome
+checks the code, oxfmt checks Markdown, YAML, and JSON, oxlint checks React,
+including the React Compiler rules in the citizen app, and Ruff checks the
+notebooks in `datasets`.
 
-Notebooks in `datasets` have their own check:
-
-```sh
-cd datasets && mise run fix
-```
-
-[`mise.toml`](mise.toml) defines `mise run check`, which runs the same checks as
-CI: format, lint, typecheck, the API and web builds, and the API, database, and
-web tests. The tests bring their own database, as
-[Setup](docs/setup.md#run-the-tests) describes.
+`bun run check` runs the same checks as CI: format, lint, typecheck, the API and
+web builds, and the API, database, and web tests. The tests bring their own
+database, as [Setup](docs/setup.md#run-the-tests) describes.
 
 ## Documentation
 
-Markdown is wrapped at 80 columns. Format it with the repository fix task:
+Markdown is wrapped at 80 columns. Format it with the repository fix script:
 
 ```sh
-mise run fix
+bun run fix
 ```
 
 ## Pull requests

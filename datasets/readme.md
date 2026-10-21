@@ -22,16 +22,18 @@ and
 
 ## Run a notebook
 
-The project uses `mise` and `uv`. From this directory:
+The project uses `mise` and `uv`. The Python project file, `pyproject.toml`, and
+its lock file are at the repository root. Run `mise install` there once, then:
 
 ```sh
-mise run install
+uv sync
+cd datasets
 uv run marimo edit src/01-waste-generation.py
 ```
 
-Replace the notebook path to open another file. `mise run dev` opens Marimo
-without choosing a file, and `mise run dev-lan` makes the server reachable on
-the local network.
+Replace the notebook path to open another file. `bun run datasets:dev` opens
+Marimo without choosing a file, and `bun run datasets:dev-lan` makes the server
+reachable on the local network. Both run from the repository root.
 
 Downloaded CSV files are cached under `src/public/residuos` and are ignored by
 Git. The tracked `manifest.json` records the source URL, title, and download
@@ -40,10 +42,11 @@ time. The population notebook reads the checked-in geographic files under
 
 ## Export
 
-The export task builds the population map notebook as a WebAssembly HTML bundle:
+The export script builds the population map notebook as a WebAssembly HTML
+bundle. Run it from the repository root:
 
 ```sh
-mise run export
+bun run datasets:export
 ```
 
 The output is written to `src/output`, which is ignored by Git.
@@ -51,7 +54,9 @@ The output is written to `src/output`, which is ignored by Git.
 ## Code quality
 
 ```sh
-mise run fix
+bun run fix
 ```
 
-This runs Ruff's formatter and linter with fixes enabled.
+From the repository root, this applies the JavaScript fixes and then runs Ruff's
+formatter and linter with safe fixes enabled. `bun run lint` checks the
+notebooks without changing them.
