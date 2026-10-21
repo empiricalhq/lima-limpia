@@ -16,7 +16,7 @@ updates:
 
   - package-ecosystem: uv
     directories:
-      - /datasets
+      - /
     schedule:
       interval: weekly
     cooldown:

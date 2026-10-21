@@ -2,8 +2,8 @@ altair==6.3.0
 anyio==4.15.1 ; sys_platform != 'emscripten'
 attrs==26.1.0
 beautifulsoup4==4.15.0
-certifi==2026.7.22
-cffi==2.1.1 ; python_full_version < '3.15' and implementation_name == 'pypy' and sys_platform != 'emscripten'
+certifi==2026.10.19
+cffi==2.1.1 ; implementation_name == 'pypy' and sys_platform != 'emscripten'
 charset-normalizer==3.5.2
 click==8.5.0
 click-plugins==1.1.1.2
@@ -12,7 +12,7 @@ contourpy==1.4.0
 cycler==0.12.1
 docutils==0.23
 fiona==1.10.1
-fonttools==4.66.1
+fonttools==4.67.0
 geopandas==1.2.0
 greenlet==3.5.6
 h11==0.16.0 ; sys_platform != 'emscripten'
@@ -23,9 +23,9 @@ jinja2==3.1.6
 jsonschema==4.26.0
 jsonschema-specifications==2025.9.1
 kiwisolver==1.5.1
-loro==1.16.2 ; sys_platform != 'android' and sys_platform != 'emscripten'
-marimo==0.25.1
-markdown==3.11.1
+loro==1.16.2 ; python_full_version < '3.15' and sys_platform != 'android' and sys_platform != 'emscripten'
+marimo==0.25.2
+markdown==3.11.2
 markupsafe==3.0.4
 matplotlib==3.11.2
 msgspec==0.22.0
@@ -34,14 +34,14 @@ numpy==2.5.4
 packaging==26.3
 pandas==3.0.6
 parso==0.8.7
-pillow==12.3.0
+pillow==13.0.0
 playwright==1.64.0
 plotly==7.1.0
 polars==2.0.0
 polars-runtime-32==2.0.0
 psutil==7.2.2 ; sys_platform != 'android' and sys_platform != 'emscripten'
 pyarrow==26.0.0
-pycparser==3.11 ; python_full_version < '3.15' and implementation_name == 'pypy' and sys_platform != 'emscripten'
+pycparser==3.11 ; implementation_name == 'pypy' and sys_platform != 'emscripten'
 pyee==14.0.0
 pygments==2.21.0
 pymdown-extensions==11.0.2
@@ -51,17 +51,17 @@ pyproj==3.8.0
 python-dateutil==2.9.0.post0
 python-multipart==0.0.32
 pyyaml==6.0.3
-pyzmq==27.2.0 ; python_full_version < '3.15' and sys_platform != 'emscripten'
+pyzmq==27.2.0 ; sys_platform != 'emscripten'
 referencing==0.37.0
 requests==2.34.2
 rpds-py==2026.9.1
 shapely==2.2.0
 six==1.17.0
 soupsieve==3.0.3
-starlette==1.8.0 ; sys_platform != 'emscripten'
-tomlkit==0.15.1
+starlette==1.9.0 ; sys_platform != 'emscripten'
+tomlkit==0.15.2
 typing-extensions==4.16.0
 tzdata==2026.5 ; sys_platform == 'emscripten' or sys_platform == 'win32'
 urllib3==2.8.0
 uvicorn==0.54.0 ; sys_platform != 'emscripten'
-websockets==17.2 ; sys_platform != 'emscripten'
+websockets==17.3 ; sys_platform != 'emscripten'

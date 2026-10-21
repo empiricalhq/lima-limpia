@@ -4,7 +4,7 @@ version = "0.2.0"
 description = "A collection of notebooks we wrote to analyze the datasets released for #dataton2025."
 
 license = { text = "MIT" }
-readme = "README.md"
+readme = "datasets/readme.md"
 requires-python = ">=3.13"
 
 authors = [
@@ -32,6 +32,7 @@ dependencies = [
 
 [tool.ruff]
 fix = true
+src = ["datasets/src"]
 line-length = 88
 target-version = "py39"
 
@@ -58,7 +59,7 @@ extend-safe-fixes = [
 
 [tool.ruff.lint.per-file-ignores]
 # The downloader logs through the root logger so that it prints without any logging setup.
-"src/utils/datasets.py" = ["LOG015"]
+"datasets/src/utils/datasets.py" = ["LOG015"]
 
 [tool.ruff.lint.flake8-tidy-imports]
 ban-relative-imports = "all"
