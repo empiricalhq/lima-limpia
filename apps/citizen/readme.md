@@ -43,7 +43,7 @@ bun --filter @lima-garbage/citizens android
 bun --filter @lima-garbage/citizens lint
 ```
 
-Run `bun run lint` from the repository root to check formatting, Biome rules,
+Run `mise run lint` from the repository root to check formatting, Biome rules,
 and oxlint rules, including the React rules Biome does not implement.
 
 The `dev` script uses the `development` EAS profile. Log in first when needed:

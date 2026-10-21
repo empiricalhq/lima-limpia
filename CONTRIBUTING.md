@@ -16,19 +16,19 @@ Run these from the repository root before opening a pull request:
 
 ```sh
 mise install
-bun install --frozen-lockfile
-bun run check
+mise run install
+mise run check
 ```
 
-`bun run fix` applies safe formatting and lint fixes. `bun run lint`,
-`bun run typecheck`, `bun run test`, and `bun run build` run each part of the
-check separately. The scripts live in [`package.json`](package.json). Biome
-checks the code, oxfmt checks Markdown, YAML, and JSON, oxlint checks React,
-including the React Compiler rules in the citizen app, and Ruff checks the
-notebooks in `datasets`.
+`mise run fix` applies safe formatting and lint fixes. `mise run lint`,
+`mise run typecheck`, `mise run test`, and `mise run build` run each part of the
+check separately. The tasks live in [`mise.toml`](mise.toml). Biome checks the
+code, oxfmt checks Markdown, YAML, and JSON, oxlint checks React, including the
+React Compiler rules in the citizen app, and Ruff checks the notebooks in
+`datasets`.
 
-`bun run check` runs the same checks as CI: format, lint, typecheck, the API and
-web builds, and the API, database, and web tests. The tests bring their own
+`mise run check` runs the same checks as CI: format, lint, typecheck, the API
+and web builds, and the API, database, and web tests. The tests bring their own
 database, as [Setup](docs/setup.md#run-the-tests) describes.
 
 ## Documentation
@@ -36,7 +36,7 @@ database, as [Setup](docs/setup.md#run-the-tests) describes.
 Markdown is wrapped at 80 columns. Format it with the repository fix script:
 
 ```sh
-bun run fix
+mise run fix
 ```
 
 ## Pull requests
