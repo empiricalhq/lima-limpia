@@ -31,13 +31,15 @@ dependencies = [
 ]
 
 [tool.ruff]
-fix = true
 src = ["datasets/src"]
 line-length = 88
-target-version = "py39"
 
 [tool.ruff.lint]
-extend-select = [
+select = [
+    "E4",  # pycodestyle imports
+    "E7",  # pycodestyle statements
+    "E9",  # pycodestyle syntax errors
+    "F",   # pyflakes
     "B",   # flake8-bugbear
     "C4",  # flake8-comprehensions
     "ERA", # flake8-eradicate/eradicate
