@@ -34,7 +34,7 @@ numpy==2.5.4
 packaging==26.3
 pandas==3.0.6
 parso==0.8.7
-pillow==12.3.0
+pillow==13.0.0
 playwright==1.64.0
 plotly==7.1.0
 polars==2.0.0
