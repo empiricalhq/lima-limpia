@@ -3,49 +3,5 @@ monorepo_root = true
 [tools]
 bun = "1.4.3"
 node = "26.12.0"
-
-[tasks.install]
-description = "Install locked JavaScript dependencies"
-run = "bun install --frozen-lockfile"
-
-[tasks.lint]
-description = "Check JavaScript, Markdown, YAML, and JSON formatting and lint"
-run = """
-bunx biome check --formatter-enabled=true --linter-enabled=false --assist-enabled=false apps packages biome-plugins
-bunx oxfmt --check '**/*.md' '**/*.json' '**/*.yaml' '**/*.yml'
-bunx biome lint .
-bunx oxlint --deny-warnings
-"""
-
-[tasks.fix]
-description = "Apply safe formatting and lint fixes"
-run = """
-bunx biome format --write apps packages biome-plugins
-bunx oxfmt --write '**/*.md' '**/*.json' '**/*.yaml' '**/*.yml'
-bunx oxlint --fix --deny-warnings
-"""
-
-[tasks.typecheck]
-description = "Typecheck every JavaScript workspace"
-run = "bun --filter '*' typecheck"
-
-[tasks.test]
-description = "Run the API, database, and web tests without services"
-run = """
-bun --filter @lima-garbage/api test
-bun --filter @lima-garbage/database test
-bun --filter @lima-garbage/web test
-"""
-
-[tasks.build]
-description = "Build the API and web applications"
-depends = ["typecheck"]
-env = { API_BASE_URL = "http://localhost:4000", NEXT_PUBLIC_BASE_URL = "http://localhost:3000" }
-run = """
-bun --filter @lima-garbage/api build
-bun --filter @lima-garbage/web build
-"""
-
-[tasks.check]
-description = "Run every repository check"
-depends = ["lint", "typecheck", "test", "build"]
+ruff = "0.17.1"
+uv = "0.13.3"
