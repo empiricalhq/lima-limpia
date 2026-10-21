@@ -1,7 +1,105 @@
 monorepo_root = true
 
+[monorepo]
+config_roots = ["apps/citizen"]
+
 [tools]
 bun = "1.4.3"
 node = "26.12.0"
 ruff = "0.17.1"
 uv = "0.13.3"
+
+[env]
+_.path = ["{{config_root}}/node_modules/.bin"]
+
+[tasks.install]
+description = "Install the workspace dependencies from the lockfile"
+run = "bun install --frozen-lockfile"
+
+[tasks.lint]
+description = "Check formatting and lint rules"
+run = [
+  "biome check --formatter-enabled=true --linter-enabled=false --assist-enabled=false apps packages biome-plugins",
+  "oxfmt --check '**/*.md' '**/*.json' '**/*.yaml' '**/*.yml'",
+  "biome lint .",
+  "oxlint --deny-warnings",
+  "ruff format --check datasets",
+  "ruff check datasets",
+]
+
+[tasks.typecheck]
+description = "Typecheck every workspace"
+run = "bun --filter '*' typecheck"
+
+[tasks.test]
+description = "Run the API, database and web tests"
+run = [
+  "bun --filter @lima-garbage/api test",
+  "bun --filter @lima-garbage/database test",
+  "bun --filter @lima-garbage/web test",
+]
+
+[tasks.build]
+description = "Build the API and the web app"
+run = [
+  "bun --filter @lima-garbage/api build",
+  "API_BASE_URL=http://localhost:4000 NEXT_PUBLIC_BASE_URL=http://localhost:3000 bun --filter @lima-garbage/web build",
+]
+
+[tasks.check]
+description = "Run every check"
+run = [
+  { task = "lint" },
+  { task = "typecheck" },
+  { task = "test" },
+  { task = "build" },
+]
+
+[tasks.fix]
+description = "Apply formatting and safe lint fixes"
+run = [
+  "biome format --write apps packages biome-plugins",
+  "oxfmt --write '**/*.md' '**/*.json' '**/*.yaml' '**/*.yml'",
+  "oxlint --fix --deny-warnings",
+  "ruff format datasets",
+  "ruff check --fix datasets",
+]
+
+[tasks.clean]
+description = "Remove installed dependencies and lockfiles"
+run = "rm -rf node_modules packages/database/node_modules apps/citizen/node_modules bun.lock packages/database/bun.lock apps/citizen/bun.lock"
+
+[tasks."datasets:dev"]
+description = "Open Marimo"
+dir = "datasets"
+run = "uv run marimo edit"
+
+[tasks."datasets:dev-lan"]
+description = "Open Marimo on the local network"
+dir = "datasets"
+run = "uv run marimo edit --host 0.0.0.0"
+
+[tasks."datasets:export"]
+description = "Export the population map as WASM HTML"
+dir = "datasets"
+run = "uv run marimo export html-wasm src/03-population-map.py -o src/output --mode run"
+
+[tasks."datasets:export-page"]
+description = "Export and prerender the population map page"
+dir = "datasets"
+run = [
+  "uv run marimo export html src/03-population-map.py -o src/output/temp_index.html",
+  "uv run python scripts/prerender_marimo.py src/output/temp_index.html src/output/index.html",
+]
+
+[tasks."datasets:export-deps"]
+description = "Write requirements.txt from the lockfile"
+run = "uv export --format requirements-txt --no-hashes --no-header --no-dev --no-annotate --output-file requirements.txt"
+
+[tasks."datasets:update"]
+description = "Upgrade the Python lockfile"
+run = "uv lock --upgrade"
+
+[tasks."datasets:outdated"]
+description = "List outdated Python packages"
+run = "uv pip list --outdated"

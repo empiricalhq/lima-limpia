@@ -3,7 +3,7 @@ import { Pool, type QueryResultRow } from 'pg';
 export function testDatabaseUrl(): string {
   const url = process.env.TEST_DATABASE_URL;
   if (!url) {
-    throw new Error('TEST_DATABASE_URL is not set. Run the tests with `bun run test`, which starts the database.');
+    throw new Error('TEST_DATABASE_URL is not set. Run the tests with `mise run test`, which starts the database.');
   }
   return url;
 }
