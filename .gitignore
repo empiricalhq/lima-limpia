@@ -1,10 +1,13 @@
 node_modules/
 
 .env
-.env.test
-.env*.local
+.env.*
+!.env.example
 .dev.vars
 .dev.vars.*
 *.ps1
 .vercel
 .fallow
+.venv/
+.ruff_cache/
+__pycache__/
