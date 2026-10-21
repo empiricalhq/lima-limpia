@@ -32,10 +32,27 @@ async function waitForServer(healthUrl: string): Promise<void> {
 let database: TestDatabase | undefined;
 let server: Bun.Subprocess | undefined;
 let code: number | undefined;
+
+// Password-reset tests send through this fake Resend endpoint so they never need a live key.
+const emailSender = Bun.serve({
+  port: 0,
+  fetch(request) {
+    if (request.method === 'POST' && new URL(request.url).pathname === '/emails') {
+      return Response.json({ id: 'test-email-id' });
+    }
+    return new Response('not found', { status: 404 });
+  },
+});
+
 try {
   database = await startTestDatabase();
   const port = await freePort();
-  const env = { ...process.env, ...testEnvironment(database.url), ...apiEnvironment(port) };
+  const env: Record<string, string | undefined> = {
+    ...process.env,
+    ...testEnvironment(database.url),
+    ...apiEnvironment(port),
+    RESEND_BASE_URL: emailSender.url.origin,
+  };
 
   server = Bun.spawn(['bun', 'src/cmd/server.ts'], {
     env,
@@ -52,6 +69,7 @@ try {
   code = await tests.exited;
 } finally {
   server?.kill();
+  emailSender.stop(true);
   await database?.stop();
 }
 process.exit(code ?? 1);
