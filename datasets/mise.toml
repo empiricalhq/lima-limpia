@@ -2,7 +2,7 @@
 python.uv_venv_auto = "create|source"
 
 [tools]
-uv = "0.13.1"
+uv = "0.13.3"
 ruff = "0.17.1"
 
 [tasks.install]
