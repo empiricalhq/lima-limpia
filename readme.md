@@ -120,6 +120,10 @@ location. The full route list is in the [API reference](docs/api.md).
 - [Architecture](ARCHITECTURE.md): the code map.
 - [Contributing](CONTRIBUTING.md): checks and pull requests.
 
+## License
+
+[MIT](LICENSE)
+
 ## Maintainers
 
 - [David Duran](https://github.com/totallynotdavid)
