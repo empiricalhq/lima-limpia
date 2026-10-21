@@ -29,6 +29,7 @@ script or the API. `openssl rand -base64 32` prints a random secret.
 | `BETTER_AUTH_URL`    | no       | `http://localhost:4000`                       | Public origin of the API.                  |
 | `EMAIL_FROM`         | no       | `onboarding@resend.dev`                       | Sender address.                            |
 | `EMAIL_FROM_NAME`    | no       | `Lima Limpia`                                 | Sender name.                               |
+| `RESEND_BASE_URL`    | no       | `https://api.resend.com`                      | Resend endpoint. Tests point it at a fake. |
 | `PORT`               | no       | `4000`                                        | API port.                                  |
 | `CORS_ORIGINS`       | no       | `http://localhost:3000,http://localhost:4000` | Origins the API answers with CORS headers. |
 | `TRUSTED_ORIGINS`    | no       | `http://localhost:3000,http://localhost:4000` | Origins Better Auth accepts requests from. |
