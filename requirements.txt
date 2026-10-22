@@ -48,7 +48,7 @@ pymdown-extensions==11.0.2
 pyogrio==0.13.0
 pyparsing==3.3.3
 pyproj==3.8.0
-python-dateutil==2.9.0.post0
+python-dateutil==3.0.0
 python-multipart==0.0.32
 pyyaml==6.0.3
 pyzmq==27.2.0 ; sys_platform != 'emscripten'
@@ -57,11 +57,11 @@ requests==2.34.2
 rpds-py==2026.9.1
 shapely==2.2.0
 six==1.17.0
-soupsieve==3.0.3
+soupsieve==3.0.4
 starlette==1.9.0 ; sys_platform != 'emscripten'
 tomlkit==0.15.2
 typing-extensions==4.16.0
-tzdata==2026.5 ; sys_platform == 'emscripten' or sys_platform == 'win32'
+tzdata==2026.5
 urllib3==2.8.0
 uvicorn==0.54.0 ; sys_platform != 'emscripten'
 websockets==17.3 ; sys_platform != 'emscripten'
