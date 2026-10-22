@@ -67,7 +67,7 @@ run = [
 
 [tasks.clean]
 description = "Remove installed dependencies and lockfiles"
-run = "rm -rf node_modules packages/database/node_modules apps/citizen/node_modules bun.lock packages/database/bun.lock apps/citizen/bun.lock"
+run = "rm -rf node_modules packages/database/node_modules apps/citizen/node_modules bun.lock apps/citizen/bun.lock"
 
 [tasks."datasets:dev"]
 description = "Open Marimo"
